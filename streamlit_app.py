@@ -2,7 +2,8 @@ import streamlit as st
 import datetime
 import pandas as pd
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google.auth.transport.requests import Request
+from google.oauth2 import service_account
 import random
 
 # -------------------- PERSONALIZZAZIONE DELLO SFONDO --------------------
