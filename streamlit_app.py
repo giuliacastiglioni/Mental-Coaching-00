@@ -2,7 +2,6 @@ import streamlit as st
 import datetime
 import pandas as pd
 import gspread
-from google.auth.transport.requests import Request
 from google.oauth2 import service_account
 import random
 
@@ -98,10 +97,18 @@ style_sliders()
 
 # -------------------- SETUP GOOGLE SHEETS --------------------
 def ottieni_dati_sheets():
+    # Carica le credenziali da un file JSON (che puoi tenere nel tuo secrets.toml su Streamlit Cloud)
+    credentials_json = '/workspaces/Mental-Coaching-00/credentials.json'  # Modifica questo percorso se necessario
+
     # Autenticazione con Google Sheets
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
-    client = gspread.authorize(creds)
+    credentials = service_account.Credentials.from_service_account_file(
+        credentials_json, 
+        scopes=["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    )
+
+    # Autorizza il client gspread
+    client = gspread.authorize(credentials)
+
     # ID dei fogli Google
     diario_data = client.open_by_key('1s0aOTMGMzVaVxdfIm28dZt-71klg8cO01EOieLg6cLE').sheet1
     mental_data = client.open_by_key('1GLE2kS0NRMCF6c4lC6ysd3Igx_HbW_2ewBypkA0-09E').sheet1
@@ -111,7 +118,6 @@ def ottieni_dati_sheets():
     df_diari = pd.DataFrame(diario_data.get_all_records())
 
     return df_stato_mentale, df_diari, mental_data, diario_data
-
 # -------------------- LOGIN --------------------
 def login():
     st.title("Login - Mental Coach per Calcio a 7 Femminile")
