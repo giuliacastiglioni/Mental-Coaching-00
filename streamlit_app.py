@@ -5,6 +5,9 @@ import gspread
 from google.oauth2 import service_account
 import random
 import json
+import time
+
+
 # -------------------- PERSONALIZZAZIONE DELLO SFONDO --------------------
 
 # Funzione per aggiungere uno sfondo azzurro chiaro
@@ -411,7 +414,8 @@ def main():
             st.markdown(f"**{row['data']}**")
             st.markdown(f"> {row['testo']}")
             st.markdown("---")
-
+        
+        time.sleep(60)  # Pausa di 60 secondi
     # -------------------- DASHBOARD --------------------
     elif pagina == "📊 Dashboard (solo visualizzazione)":
         st.title("📊 I tuoi stati mentali nel tempo")
