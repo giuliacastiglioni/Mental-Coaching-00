@@ -6,6 +6,8 @@ from google.oauth2 import service_account
 import random
 import json
 import time
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 # -------------------- PERSONALIZZAZIONE DELLO SFONDO --------------------
@@ -220,10 +222,55 @@ def home():
     st.image("https://th.bing.com/th/id/OIP.Sz-ErltHiavXNHUAne6W_QHaE8?pid=ImgDet&w=184&h=122&c=7&dpr=1,3", use_container_width=True)
     st.markdown("Usa il menu a sinistra per iniziare ✨")
 
-def dashboard_allenatore(df):
-    st.title("Dashboard Allenatore")
-    st.write("Ecco la panoramica dei dati delle giocatrici:")
-    st.dataframe(df)
+def dashboard_allenatore(df_mental):
+    st.title("Dashboard Allenatore - Risultati Questionario Mentale")
+    st.write("Ecco la panoramica dei risultati del questionario mentale delle giocatrici:")
+
+    # Statistiche generali del questionario
+    st.subheader("Statistiche generali del questionario")
+    st.write(f"Numero totale di giocatrici che hanno completato il questionario: {df_mental.shape[0]}")
+
+    # Calcolare la media dei punteggi per ogni domanda
+    colonne_punteggio = ['ansia', 'concentrazione', 'motivazione', 'autocontrollo', 'stress']
+    medie = df_mental[colonne_punteggio].mean().reset_index()
+    medie.columns = ['Domanda', 'Punteggio medio']
+    st.write("Punteggi medi per domanda:")
+    st.dataframe(medie)
+
+    # Grafico dei punteggi medi per ogni domanda
+    st.subheader("Punteggi medi per domanda")
+    fig, ax = plt.subplots()
+    sns.barplot(x='Domanda', y='Punteggio medio', data=medie, ax=ax)
+    ax.set_title("Punteggi medi per domanda del questionario")
+    st.pyplot(fig)
+
+    # Visualizza la distribuzione delle risposte (per esempio per la 'motivazione')
+    st.subheader("Distribuzione delle risposte per 'motivazione'")
+    fig, ax = plt.subplots()
+    sns.histplot(df_mental['motivazione'], kde=True, ax=ax)
+    ax.set_title("Distribuzione delle risposte per 'motivazione'")
+    st.pyplot(fig)
+
+    # Media totale dei punteggi (somma di tutti i punteggi)
+    st.subheader("Punteggio totale medio delle giocatrici")
+    df_mental['punteggio_totale'] = df_mental[colonne_punteggio].sum(axis=1)
+    st.write(f"Punteggio totale medio delle giocatrici: {df_mental['punteggio_totale'].mean():.2f}")
+
+    # Riepilogo delle giocatrici con i loro punteggi
+    st.subheader("Dettaglio per giocatrice")
+    st.dataframe(df_mental[['giocatrice'] + colonne_punteggio + ['punteggio_totale']])
+
+    # Filtro per visualizzare le giocatrici con punteggi particolari
+    st.subheader("Filtra per punteggio totale")
+    punteggio_minimo = st.slider("Seleziona il punteggio minimo", min_value=int(df_mental['punteggio_totale'].min()), max_value=int(df_mental['punteggio_totale'].max()), value=int(df_mental['punteggio_totale'].min()))
+    giocatrici_filtrate = df_mental[df_mental['punteggio_totale'] >= punteggio_minimo]
+    st.write(f"Giocatrici con punteggio totale maggiore o uguale a {punteggio_minimo}:")
+    st.dataframe(giocatrici_filtrate)
+
+    # Concludi con una panoramica
+    st.subheader("Panoramica")
+    st.write("Questa dashboard fornisce una panoramica dei risultati dei questionari mentali delle giocatrici. L'allenatore può utilizzarla per analizzare i punteggi medi, la distribuzione delle risposte e filtrare per le giocatrici con punteggi specifici.")
+
 # -------------------- Esercizi Mentali & Risorse --------------------
 
 # Definisci tutte le funzioni prima del blocco principale
