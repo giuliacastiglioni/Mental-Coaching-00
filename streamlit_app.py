@@ -101,7 +101,6 @@ def ottieni_dati_sheets():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', scope)
     client = gspread.authorize(creds)
-
     # ID dei fogli Google
     diario_data = client.open_by_key('1s0aOTMGMzVaVxdfIm28dZt-71klg8cO01EOieLg6cLE').sheet1
     mental_data = client.open_by_key('1GLE2kS0NRMCF6c4lC6ysd3Igx_HbW_2ewBypkA0-09E').sheet1
