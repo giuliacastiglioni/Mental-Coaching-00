@@ -4,7 +4,7 @@ import pandas as pd
 import gspread
 from google.oauth2 import service_account
 import random
-
+import json
 # -------------------- PERSONALIZZAZIONE DELLO SFONDO --------------------
 
 # Funzione per aggiungere uno sfondo azzurro chiaro
@@ -95,14 +95,13 @@ def style_sliders():
 # Applicare lo stile degli slider
 style_sliders()
 
-# -------------------- SETUP GOOGLE SHEETS --------------------
 def ottieni_dati_sheets():
-    # Carica le credenziali da un file JSON (che puoi tenere nel tuo secrets.toml su Streamlit Cloud)
-    credentials_json = '/workspaces/Mental-Coaching-00/credentials.json'  # Modifica questo percorso se necessario
-
+    # Carica le credenziali da un file JSON (che dovresti ottenere dal tuo file secrets.toml)
+    credentials_info = json.loads(st.secrets["gcp"]["credentials"])  # carica le credenziali come dizionario
+    
     # Autenticazione con Google Sheets
-    credentials = service_account.Credentials.from_service_account_file(
-        credentials_json, 
+    credentials = service_account.Credentials.from_service_account_info(
+        credentials_info, 
         scopes=["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     )
 
