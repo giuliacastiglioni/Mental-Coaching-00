@@ -239,7 +239,7 @@ def navigazione():
         st.session_state["ruolo"] = None
         st.session_state["codice"] = None
         st.success("Sei stato disconnesso!")
-        return "Login"  # Torna alla pagina di login
+        return "login"  # Torna alla pagina di login
     
     return pagina
 # -------------------- PAGINE PRINCIPALI --------------------
