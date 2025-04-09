@@ -214,6 +214,7 @@ def login():
 
 # Funzione di navigazione aggiornata
 def navigazione():
+    pagina = None  # Inizializza la variabile pagina
     if 'nome' not in st.session_state:
         st.warning("Devi prima effettuare il login.")
         return None  # Non continuare se non loggato
