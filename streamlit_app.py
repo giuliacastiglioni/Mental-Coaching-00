@@ -231,6 +231,12 @@ def navigazione():
         pagina = st.sidebar.radio("Scegli sezione", 
                                   ["🏠 Home", 
                                    "📊 Dashboard Allenatore"])
+    
+    # Aggiungi il pulsante di logout senza cancellare i dati
+    if st.sidebar.button("Logout"):
+        st.session_state["logged_in"] = False  # Imposta lo stato di login a False
+        st.success("Sei stato disconnesso!")
+        return "Login"  # Ritorna alla schermata di login
 
     return pagina
 # -------------------- PAGINE PRINCIPALI --------------------
@@ -494,6 +500,18 @@ def main():
         elif esercizio == "Audio brevi (mindfulness)":
             audio_mindfulness()
 
+    elif pagina == "📊 Dashboard Allenatore":
+        st.title("📊 Dashboard Allenatore")
+        st.write("Visualizza i risultati del questionario mentale delle giocatrici.")
+        questionario = recupera_questionario(st.session_state["nome"])
+        if not questionario:
+            st.info("Non ci sono ancora dati. Compila il questionario!")
+        else:
+            df_mental = pd.DataFrame(questionario, columns=["nome", "data", "motivazione", "ansia", "concentrazione", "autostima", "stanchezza", "stress", "supporto", "soddisfazione"])
+            df_mental["data"] = pd.to_datetime(df_mental["data"])
+            df_mental['giocatrice'] = df_mental['nome']
+            dashboard_allenatore(df_mental)
+            
 # Aggiungi la chiamata alla funzione principale
 if __name__ == "__main__":
     main()
