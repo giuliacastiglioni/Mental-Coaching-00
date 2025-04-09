@@ -5,10 +5,10 @@ import gspread
 from google.oauth2 import service_account
 import random
 import json
-import time
+import datetime
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+import sqlite3
 
 # -------------------- PERSONALIZZAZIONE DELLO SFONDO --------------------
 
@@ -100,29 +100,65 @@ def style_sliders():
 # Applicare lo stile degli slider
 style_sliders()
 
-def ottieni_dati_sheets():
-    # Carica le credenziali da un file JSON (che dovresti ottenere dal tuo file secrets.toml)
-    credentials_info = json.loads(st.secrets["gcp"]["credentials"])  # carica le credenziali come dizionario
-    
-    # Autenticazione con Google Sheets
-    credentials = service_account.Credentials.from_service_account_info(
-        credentials_info, 
-        scopes=["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    )
 
-    # Autorizza il client gspread
-    client = gspread.authorize(credentials)
+# Connessione al database SQLite (crea il file se non esiste)
+conn = sqlite3.connect('mental_coaching.db')
+cursor = conn.cursor()
 
-    # ID dei fogli Google
-    diario_data = client.open_by_key('1s0aOTMGMzVaVxdfIm28dZt-71klg8cO01EOieLg6cLE').sheet1
-    mental_data = client.open_by_key('1GLE2kS0NRMCF6c4lC6ysd3Igx_HbW_2ewBypkA0-09E').sheet1
+# Creazione delle tabelle se non esistono
+cursor.execute('''CREATE TABLE IF NOT EXISTS questionario (
+                    nome TEXT,
+                    data TEXT,
+                    motivazione INTEGER,
+                    ansia INTEGER,
+                    concentrazione INTEGER,
+                    autostima INTEGER,
+                    stanchezza INTEGER,
+                    stress INTEGER,
+                    supporto INTEGER,
+                    soddisfazione INTEGER
+                )''')
 
-    # Ottieni i dati dai fogli
-    df_stato_mentale = pd.DataFrame(mental_data.get_all_records())
-    df_diari = pd.DataFrame(diario_data.get_all_records())
+cursor.execute('''CREATE TABLE IF NOT EXISTS diario (
+                    nome TEXT,
+                    data TEXT,
+                    testo TEXT
+                )''')
 
-    return df_stato_mentale, df_diari, mental_data, diario_data
-# -------------------- LOGIN --------------------
+# Funzione per salvare le risposte del questionario nel database
+def salva_questionario(nome, oggi, motivazione, ansia, concentrazione, autostima, stanchezza, stress, supporto, soddisfazione):
+    try:
+        cursor.execute('''INSERT INTO questionario 
+                          (nome, data, motivazione, ansia, concentrazione, autostima, stanchezza, stress, supporto, soddisfazione)
+                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''', 
+                          (nome, oggi, motivazione, ansia, concentrazione, autostima, stanchezza, stress, supporto, soddisfazione))
+        conn.commit()
+        st.success("✅ Risposte salvate con successo!")
+    except Exception as e:
+        st.error(f"❌ Errore durante il salvataggio: {e}")
+
+# Funzione per salvare il diario nel database
+def salva_diario(nome, oggi, testo):
+    try:
+        cursor.execute('''INSERT INTO diario (nome, data, testo) VALUES (?, ?, ?)''', 
+                          (nome, oggi, testo))
+        conn.commit()
+        st.success("Salvato nel diario!")
+    except Exception as e:
+        st.error(f"❌ Errore durante il salvataggio nel diario: {e}")
+
+# Funzione per recuperare i dati del questionario per un nome specifico
+def recupera_questionario(nome):
+    cursor.execute("SELECT * FROM questionario WHERE nome = ?", (nome,))
+    return cursor.fetchall()
+
+# Funzione per recuperare i dati del diario per un nome specifico
+def recupera_diario(nome):
+    cursor.execute("SELECT * FROM diario WHERE nome = ?", (nome,))
+    return cursor.fetchall()
+
+# Esegui login
+# Esegui login
 def login():
     st.title("Login - Mental Coach per Calcio a 7 Femminile")
 
@@ -179,40 +215,27 @@ def login():
 
     return False
 
-
-# -------------------- NAVIGAZIONE --------------------
+# Funzione di navigazione aggiornata
 def navigazione():
     if 'nome' not in st.session_state:
         st.warning("Devi prima effettuare il login.")
         return None  # Non continuare se non loggato
-    
-# Aggiungi un pulsante di logout
-    if st.sidebar.button("Logout"):
-        # Rimuovi tutte le informazioni dell'utente dalla sessione
-        del st.session_state['nome']
-        del st.session_state['ruolo']
-        if 'codice' in st.session_state:
-            del st.session_state['codice']
-        st.sidebar.success("Sei stato disconnesso con successo!")
-        return None  # Torna alla pagina di login
-    
+
     # Navigazione basata sul ruolo dell'utente
     if st.session_state['ruolo'] == 'Giocatrice':
         st.sidebar.title(f"👋 Benvenuta {st.session_state['nome']}!")
         pagina = st.sidebar.radio("Scegli sezione", 
                                   ["🏠 Home", 
                                    "🧠 Questionario mentale", 
-                                   "📓 Diario personale",                                
+                                   "📓 Diario personale", 
                                    "🧘‍♀️ Esercizi Mentali & Risorse"])
     elif st.session_state['ruolo'] == 'Allenatore':
         st.sidebar.title(f"👋 Benvenuto {st.session_state['nome']} - Allenatore!")
         pagina = st.sidebar.radio("Scegli sezione", 
                                   ["🏠 Home", 
-                                   "📊 Dashboard Allenatore", ])
+                                   "📊 Dashboard Allenatore"])
 
     return pagina
-
-
 # -------------------- PAGINE PRINCIPALI --------------------
 
 
@@ -315,13 +338,20 @@ def esercizio_respirazione():
     st.button("Inizia esercizio")
 
 def visualizzazione_pre_partita():
-    st.subheader("Visualizzazione Positiva Pre-Partita")
+    st.subheader("Visualizzazione Pre-Partita")
+    st.write("Immagina di entrare in campo, concentrata e pronta per dare il massimo.")
+    st.write("Segui questi passaggi di visualizzazione per migliorare la tua preparazione mentale prima della partita:")
     st.markdown("""
-        Immagina di essere al massimo della tua forma fisica e mentale.
-        Visualizza te stessa in campo, giocando con grinta, concentrazione e sicurezza.
-        Lascia che questa immagine ti carichi di energia positiva e determinazione.
+    1. Trova un posto tranquillo dove puoi sederti o stare in piedi comodamente.
+    2. Chiudi gli occhi e prendi un respiro profondo.
+    3. Immagina di essere sul campo da gioco, guardando la tua squadra e l'avversario.
+    4. Visualizza ogni movimento che farai durante la partita, dal riscaldamento fino al fischio finale.
+    5. Concentrati sui tuoi obiettivi individuali e di squadra.
+    6. Visualizza te stessa mentre esegui perfettamente ogni azione, sentendo la tua energia e determinazione crescere.
+    7. Senti la fiducia crescere dentro di te, pronta a fare la tua parte per la squadra.
+    8. Ora, prendi un altro respiro profondo e prepara la tua mente per la partita!
     """)
-    st.button("Inizia visualizzazione")
+    st.button("Inizia esercizio")
 
 def diario_emozioni():
     st.subheader("Diario delle Emozioni")
@@ -373,7 +403,7 @@ def main():
         if not login():
             return
 
-    df_stato_mentale, df_diari, mental_data, diario_data = ottieni_dati_sheets()
+  #  df_stato_mentale, df_diari, mental_data, diario_data = ottieni_dati_sheets()
 
     pagina = navigazione()
     
@@ -383,8 +413,7 @@ def main():
     if pagina == "🏠 Home":
         home()
 
-#------------ QUESTIONARIO --------------------
-    elif pagina == "🧠 Questionario mentale":
+    if pagina == "🧠 Questionario mentale":
         st.title("🧠 Come ti senti oggi?")
         oggi = datetime.date.today().isoformat()
 
@@ -414,68 +443,38 @@ def main():
         st.markdown("Quanto sei soddisfatta della tua performance recente?")
         soddisfazione = st.slider("Soddisfazione Personale", 1, 5, 3, step=1)
 
-    # Verifica che il nome sia stato inserito nella homepage
-        if 'nome' not in st.session_state:
-            st.error("⚠️ Inserisci prima il tuo nome nella homepage.")
-        else:
-            nome = st.session_state['nome']
-            if st.button("Salva risposte"):
-                try:
-                    nuova_riga = [
-                        nome,
-                        oggi,
-                        motivazione,
-                        ansia,
-                        concentrazione,
-                        autostima,
-                        stanchezza,
-                        stress,
-                        supporto,
-                        soddisfazione,
-                    ]
-                    mental_data.append_row(nuova_riga)
-                    st.success("✅ Risposte salvate con successo!")
-                except Exception as e:
-                    st.error(f"❌ Errore durante il salvataggio: {e}")
+        # Salvataggio nel database
+        if st.button("Salva risposte"):
+            salva_questionario(st.session_state["nome"], oggi, motivazione, ansia, concentrazione, autostima, stanchezza, stress, supporto, soddisfazione)
 
-        # -------------------- DIARIO --------------------
     elif pagina == "📓 Diario personale":
         st.title("📓 Diario personale")
         oggi = datetime.date.today().isoformat()
 
         testo = st.text_area("Scrivi qui il tuo pensiero di oggi")
-        if 'nome' in st.session_state:
-            nome = st.session_state['nome']
         if st.button("Salva nel diario"):
-            nuova_riga = [nome, oggi, testo]
-            diario_data.append_row(nuova_riga)
-            st.success("Salvato nel diario!")
+            salva_diario(st.session_state["nome"], oggi, testo)
 
         st.markdown("---")
         st.subheader("📖 I tuoi appunti passati")
-        diario_df = pd.DataFrame(diario_data.get_all_records())
-        diario_nome = diario_df[diario_df["nome"] == nome]
-       # st.write(diario_df.columns)  # Questo ti mostra i nomi delle colonne
+        diario_data = recupera_diario(st.session_state["nome"])
 
-        for _, row in diario_nome.iterrows():
-            st.markdown(f"**{row['data']}**")
-            st.markdown(f"> {row['testo']}")
+        for record in diario_data:
+            st.markdown(f"**{record[1]}**")
+            st.markdown(f"> {record[2]}")
             st.markdown("---")
-        
-        time.sleep(60)  # Pausa di 60 secondi
-    # -------------------- DASHBOARD --------------------
+    
+    # Dashboard per visualizzare i dati del questionario nel tempo
     elif pagina == "📊 Dashboard (solo visualizzazione)":
         st.title("📊 I tuoi stati mentali nel tempo")
-        df = pd.DataFrame(mental_data.get_all_records())
-        df = df[df["nome"] == nome]
-
-        if df.empty:
+        questionario = recupera_questionario(nome)
+        
+        if not questionario:
             st.info("Non ci sono ancora dati. Compila il questionario!")
         else:
+            df = pd.DataFrame(questionario, columns=["nome", "data", "motivazione", "ansia", "concentrazione", "autostima", "stanchezza", "stress", "supporto", "soddisfazione"])
             df["data"] = pd.to_datetime(df["data"])
-            st.line_chart(df.set_index("data")[["motivazione", "ansia", "concentrazione", "autostima","stanchezza",	"stress",	"supporto",	"soddisfazione"]])
-
-
+            st.line_chart(df.set_index("data")[["motivazione", "ansia", "concentrazione", "autostima", "stanchezza", "stress", "supporto", "soddisfazione"]])
 
     elif pagina == "🧘‍♀️ Esercizi Mentali & Risorse":
         st.title("🧘‍♀️ Esercizi Mentali & Risorse")
