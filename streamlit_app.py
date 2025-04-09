@@ -155,7 +155,6 @@ def recupera_diario(nome):
     return cursor.fetchall()
 
 # Esegui login
-# Esegui login
 def login():
     st.title("Login - Mental Coach per Calcio a 7 Femminile")
 
@@ -215,9 +214,10 @@ def login():
 # Funzione di navigazione aggiornata
 def navigazione():
     pagina = None  # Inizializza la variabile pagina
+
     if 'nome' not in st.session_state:
         st.warning("Devi prima effettuare il login.")
-        return None  # Non continuare se non loggato
+        return "login"  # Torna alla pagina di login
 
     # Navigazione basata sul ruolo dell'utente
     if st.session_state['ruolo'] == 'Giocatrice':
@@ -233,16 +233,14 @@ def navigazione():
                                   ["🏠 Home", 
                                    "📊 Dashboard Allenatore"])
     
-    # Aggiungi il pulsante di logout senza cancellare i dati
+    # Aggiungi il pulsante di logout
     if st.sidebar.button("Logout"):
-        st.session_state["logged_in"] = False  # Imposta lo stato di login a False
-        st.session_state["nome"] = None  # Reset dei dati relativi al login
-        st.session_state["ruolo"] = None
-        st.session_state["codice"] = None
+        st.session_state.clear()  # Resetta tutti i dati della sessione
         st.success("Sei stato disconnesso!")
         return "login"  # Torna alla pagina di login
     
     return pagina
+
 # -------------------- PAGINE PRINCIPALI --------------------
 
 
@@ -414,9 +412,7 @@ def main():
 
     pagina = navigazione()
     
-    if pagina is None:
-        return
-    
+  
     if pagina == "login":
         # Mostra la schermata di login
         if not login():
