@@ -415,7 +415,12 @@ def main():
     
     if pagina is None:
         return
-
+    
+    if pagina == "login":
+        # Mostra la schermata di login
+        if not login():
+            return
+        
     if pagina == "🏠 Home":
         home()
 
