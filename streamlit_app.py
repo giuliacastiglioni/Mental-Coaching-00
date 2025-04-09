@@ -235,9 +235,12 @@ def navigazione():
     # Aggiungi il pulsante di logout senza cancellare i dati
     if st.sidebar.button("Logout"):
         st.session_state["logged_in"] = False  # Imposta lo stato di login a False
+        st.session_state["nome"] = None  # Reset dei dati relativi al login
+        st.session_state["ruolo"] = None
+        st.session_state["codice"] = None
         st.success("Sei stato disconnesso!")
-        return "Login"  # Ritorna alla schermata di login
-
+        return "Login"  # Torna alla pagina di login
+    
     return pagina
 # -------------------- PAGINE PRINCIPALI --------------------
 
@@ -511,7 +514,7 @@ def main():
             df_mental["data"] = pd.to_datetime(df_mental["data"])
             df_mental['giocatrice'] = df_mental['nome']
             dashboard_allenatore(df_mental)
-            
+
 # Aggiungi la chiamata alla funzione principale
 if __name__ == "__main__":
     main()
