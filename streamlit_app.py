@@ -1,10 +1,7 @@
 import streamlit as st
 import datetime
 import pandas as pd
-import gspread
-from google.oauth2 import service_account
 import random
-import json
 import datetime
 import matplotlib.pyplot as plt
 import seaborn as sns
