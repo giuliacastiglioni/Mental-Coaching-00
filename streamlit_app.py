@@ -67,6 +67,7 @@ def style_buttons():
 # Applica la personalizzazione dei bottoni
 style_buttons()
 
+import streamlit as st
 
 # Dizionari separati per giocatrici e allenatori
 passwords_giocatrici = {
@@ -128,29 +129,21 @@ def login():
     
     else:
         # Se l'utente non è ancora registrato, registrazione
-        if ruolo == "Giocatrice":
-            st.subheader(f"Registrazione per Giocatrice: {nome}")
-            nuova_password = st.text_input("Crea una nuova password", type="password")
-            conferma_password = st.text_input("Conferma la password", type="password")
+        st.subheader(f"Registrazione per {ruolo}: {nome}")
+        nuova_password = st.text_input("Crea una nuova password", type="password")
+        conferma_password = st.text_input("Conferma la password", type="password")
 
-            if nuova_password and nuova_password == conferma_password:
+        if nuova_password and nuova_password == conferma_password:
+            if ruolo == "Giocatrice":
                 passwords_giocatrici[nome] = nuova_password
-                st.session_state[nome] = nuova_password  # Salva nella sessione la password
-                st.success(f"Password per {nome} salvata con successo!")
-            elif nuova_password and nuova_password != conferma_password:
-                st.error("Le password non corrispondono!")
-
-        elif ruolo == "Allenatore":
-            st.subheader(f"Registrazione per Allenatore: {nome}")
-            nuova_password = st.text_input("Crea una nuova password", type="password")
-            conferma_password = st.text_input("Conferma la password", type="password")
-
-            if nuova_password and nuova_password == conferma_password:
+            elif ruolo == "Allenatore":
                 passwords_allenatori[nome] = nuova_password
-                st.session_state[nome] = nuova_password  # Salva nella sessione la password
-                st.success(f"Password per {nome} salvata con successo!")
-            elif nuova_password and nuova_password != conferma_password:
-                st.error("Le password non corrispondono!")
+
+            # Salva nella sessione la password
+            st.session_state[nome] = nuova_password
+            st.success(f"Password per {nome} salvata con successo!")
+        elif nuova_password and nuova_password != conferma_password:
+            st.error("Le password non corrispondono!")
 
     return False
 
