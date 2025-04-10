@@ -67,62 +67,109 @@ def style_buttons():
 # Applica la personalizzazione dei bottoni
 style_buttons()
 
-# -------------------- LOGIN --------------------
+
+# Dizionari separati per giocatrici e allenatori
+passwords_giocatrici = {
+    "Giuli": None,
+    "Faccio": None,
+    "Babi": None,
+    "Cla": None,
+    "Mame": None,
+    "Marti Russo": None,
+    "Marti Casella": None,
+    "Cata": None,
+    "Ele": None
+}
+
+passwords_allenatori = {
+    "Marti": None,
+    "Elena": None,
+    "Giulia": None
+}
+
 def login():
     st.title("Login - Mental Coach per Calcio a 7 Femminile")
 
-    # Dizionari dei codici personali
-    codici_giocat = {
-        "Giuli": "001",
-        "Faccio": "001",
-        "Babi": "001",
-        "Cla": "001",
-        "Mame": "001",
-        "Marti Russo": "001",
-        "Marti Casella": "001",
-        "Cata": "001",
-        "Ele": "001"
-    }
-
-    codici_allenatori = {
-        "Marti": "1234",
-        "Elena": "1234",
-        "Giulia": "1234",
-    }
-
+    # Seleziona il ruolo
     ruolo = st.radio("Seleziona il tuo ruolo", ("Giocatrice", "Allenatore"))
 
+    # Seleziona il nome in base al ruolo
     if ruolo == "Giocatrice":
-        nome = st.selectbox("Seleziona il tuo nome", list(codici_giocat.keys()))
-        codice_inserito = st.text_input("Inserisci il tuo codice personale", type="password")
+        nome = st.selectbox("Seleziona il tuo nome", list(passwords_giocatrici.keys()))
     else:
-        nome = st.selectbox("Seleziona il tuo nome", list(codici_allenatori.keys()))
-        codice_inserito = st.text_input("Inserisci il tuo codice personale", type="password")
+        nome = st.selectbox("Seleziona il tuo nome", list(passwords_allenatori.keys()))
 
-    if st.button("Accedi"):
-        if nome and codice_inserito:
-            if ruolo == "Allenatore":
-                codice_atteso = codici_allenatori.get(nome)
-                if codice_inserito != codice_atteso:
-                    st.error("Codice allenatore non valido!")
-                    return False
-            elif ruolo == "Giocatrice":
-                codice_atteso = codici_giocat.get(nome)
-                if codice_inserito != codice_atteso:
-                    st.error("Codice personale errato!")
-                    return False
+    # Verifica se l'utente è già registrato
+    if nome in st.session_state:
+        # Se l'utente è già registrato, si fa solo il login
+        st.subheader(f"Login {nome}")
+        password_inserita = st.text_input("Inserisci la tua password", type="password")
 
-            # Salva nella sessione
-            st.session_state["nome"] = nome
-            st.session_state["ruolo"] = ruolo
-            st.session_state["codice"] = codice_inserito
+        if st.button("Accedi"):
+            # Verifica se la password è corretta in base al ruolo
+            if ruolo == "Giocatrice" and password_inserita == passwords_giocatrici.get(nome):
+                # Salva nella sessione il ruolo e il nome
+                st.session_state["nome"] = nome
+                st.session_state["ruolo"] = ruolo
+                st.success(f"Benvenuta {nome}, sei loggata come {ruolo}")
+                return True
+            elif ruolo == "Allenatore" and password_inserita == passwords_allenatori.get(nome):
+                # Salva nella sessione il ruolo e il nome
+                st.session_state["nome"] = nome
+                st.session_state["ruolo"] = ruolo
+                st.success(f"Benvenuto {nome}, sei loggato come {ruolo}")
+                return True
+            else:
+                st.error("Password errata!")
 
-            st.success(f"Benvenuta {nome}, sei loggata come {ruolo}")
-            return True
-        else:
-            st.error("Compila tutti i campi!")
+        # Aggiungi il pulsante per il reset della password
+        if st.button("Resetta Password"):
+            resetta_password(nome, ruolo)
+    
+    else:
+        # Se l'utente non è ancora registrato, registrazione
+        if ruolo == "Giocatrice":
+            st.subheader(f"Registrazione per Giocatrice: {nome}")
+            nuova_password = st.text_input("Crea una nuova password", type="password")
+            conferma_password = st.text_input("Conferma la password", type="password")
+
+            if nuova_password and nuova_password == conferma_password:
+                passwords_giocatrici[nome] = nuova_password
+                st.session_state[nome] = nuova_password  # Salva nella sessione la password
+                st.success(f"Password per {nome} salvata con successo!")
+            elif nuova_password and nuova_password != conferma_password:
+                st.error("Le password non corrispondono!")
+
+        elif ruolo == "Allenatore":
+            st.subheader(f"Registrazione per Allenatore: {nome}")
+            nuova_password = st.text_input("Crea una nuova password", type="password")
+            conferma_password = st.text_input("Conferma la password", type="password")
+
+            if nuova_password and nuova_password == conferma_password:
+                passwords_allenatori[nome] = nuova_password
+                st.session_state[nome] = nuova_password  # Salva nella sessione la password
+                st.success(f"Password per {nome} salvata con successo!")
+            elif nuova_password and nuova_password != conferma_password:
+                st.error("Le password non corrispondono!")
 
     return False
+
+def resetta_password(nome, ruolo):
+    # Aggiungi la possibilità di resettare la password
+    st.write(f"Stai per resettare la password per {nome}.")
+    nuova_password = st.text_input("Inserisci una nuova password", type="password")
+    conferma_password = st.text_input("Conferma la nuova password", type="password")
+
+    if nuova_password and nuova_password == conferma_password:
+        if ruolo == "Giocatrice":
+            passwords_giocatrici[nome] = nuova_password
+        elif ruolo == "Allenatore":
+            passwords_allenatori[nome] = nuova_password
+        
+        st.success(f"La password per {nome} è stata aggiornata con successo!")
+    elif nuova_password and nuova_password != conferma_password:
+        st.error("Le password non corrispondono!")
+
 
 # Funzione di navigazione aggiornata
 def navigazione():
