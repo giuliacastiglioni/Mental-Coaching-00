@@ -7,6 +7,8 @@ import time
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+import bcrypt
+
 
 # -------------------- PERSONALIZZAZIONE DELLO SFONDO --------------------
 # -------------------- CARICAMENTO E CREAZIONE DEI FILE JSON --------------------
@@ -67,9 +69,10 @@ def style_buttons():
 # Applica la personalizzazione dei bottoni
 style_buttons()
 
-import streamlit as st
+# File per salvare i dati (senza cifratura complessa)
+LOGIN_FILE = 'login_data.json'
 
-# Dizionari separati per giocatrici e allenatori
+# Dizionari separati per giocatrici e allenatori (contenente hash delle password)
 passwords_giocatrici = {
     "Giuli": None,
     "Faccio": None,
@@ -88,8 +91,54 @@ passwords_allenatori = {
     "Giulia": None
 }
 
+# Funzione per leggere i login dal file
+def leggi_login():
+    try:
+        with open(LOGIN_FILE, 'r') as file:
+            data = json.load(file)
+        return data
+    except FileNotFoundError:
+        return {}
+
+# Funzione per scrivere i login nel file
+def scrivi_login(data):
+    with open(LOGIN_FILE, 'w') as file:
+        json.dump(data, file)
+
+# Funzione per registrare la password in modo sicuro con bcrypt
+def registra_password(nome, ruolo, password):
+    hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+    
+    if ruolo == "Giocatrice":
+        passwords_giocatrici[nome] = hashed_password
+    elif ruolo == "Allenatore":
+        passwords_allenatori[nome] = hashed_password
+
+# Funzione di login
 def login():
-    st.title("Login - Mental Coach per Calcio a 7 Femminile")
+    # Leggi i dati di login precedenti dal file
+    login_data = leggi_login()
+
+    # Verifica se l'utente è già loggato
+    if "nome" in st.session_state and "ruolo" in st.session_state:
+        nome = st.session_state["nome"]
+        ruolo = st.session_state["ruolo"]
+        st.success(f"Sei già loggato come {ruolo} - {nome}")
+        # Aggiungi un pulsante di logout
+        if st.button("Logout"):
+            # Rimuoviamo solo i dati di login dalla sessione, non tutto
+            del st.session_state["nome"]
+            del st.session_state["ruolo"]
+            st.success("Logout effettuato con successo.")
+            st.experimental_rerun()  # Ricarica la pagina per tornare alla schermata di login
+            return False  # Torna al login senza bisogno di registrazione
+
+    # Verifica se il login è già stato effettuato tramite la sessione
+    if "nome" in st.session_state and "ruolo" in st.session_state:
+        nome = st.session_state["nome"]
+        ruolo = st.session_state["ruolo"]
+        st.success(f"Benvenuto {nome}, sei loggato come {ruolo}")
+        return True
 
     # Seleziona il ruolo
     ruolo = st.radio("Seleziona il tuo ruolo", ("Giocatrice", "Allenatore"))
@@ -101,23 +150,27 @@ def login():
         nome = st.selectbox("Seleziona il tuo nome", list(passwords_allenatori.keys()))
 
     # Verifica se l'utente è già registrato
-    if nome in st.session_state:
-        # Se l'utente è già registrato, si fa solo il login
+    if nome in login_data:
+        # Login
         st.subheader(f"Login {nome}")
         password_inserita = st.text_input("Inserisci la tua password", type="password")
 
         if st.button("Accedi"):
-            # Verifica se la password è corretta in base al ruolo
-            if ruolo == "Giocatrice" and password_inserita == passwords_giocatrici.get(nome):
-                # Salva nella sessione il ruolo e il nome
+            # Verifica se la password è corretta
+            if ruolo == "Giocatrice" and bcrypt.checkpw(password_inserita.encode(), passwords_giocatrici.get(nome)):
                 st.session_state["nome"] = nome
                 st.session_state["ruolo"] = ruolo
+                # Salva nel file login_data.json
+                login_data = {"nome": nome, "ruolo": ruolo}
+                scrivi_login(login_data)
                 st.success(f"Benvenuta {nome}, sei loggata come {ruolo}")
                 return True
-            elif ruolo == "Allenatore" and password_inserita == passwords_allenatori.get(nome):
-                # Salva nella sessione il ruolo e il nome
+            elif ruolo == "Allenatore" and bcrypt.checkpw(password_inserita.encode(), passwords_allenatori.get(nome)):
                 st.session_state["nome"] = nome
                 st.session_state["ruolo"] = ruolo
+                # Salva nel file login_data.json
+                login_data = {"nome": nome, "ruolo": ruolo}
+                scrivi_login(login_data)
                 st.success(f"Benvenuto {nome}, sei loggato come {ruolo}")
                 return True
             else:
@@ -128,25 +181,30 @@ def login():
             resetta_password(nome, ruolo)
     
     else:
-        # Se l'utente non è ancora registrato, registrazione
+        # Registrazione
         st.subheader(f"Registrazione per {ruolo}: {nome}")
         nuova_password = st.text_input("Crea una nuova password", type="password")
         conferma_password = st.text_input("Conferma la password", type="password")
 
         if nuova_password and nuova_password == conferma_password:
-            if ruolo == "Giocatrice":
-                passwords_giocatrici[nome] = nuova_password
-            elif ruolo == "Allenatore":
-                passwords_allenatori[nome] = nuova_password
+            registra_password(nome, ruolo, nuova_password)  # Registra la password con hashing
 
-            # Salva nella sessione la password
-            st.session_state[nome] = nuova_password
+            st.session_state["nome"] = nome
+            st.session_state["ruolo"] = ruolo
+
+            # Salva nel file login_data.json
+            login_data = {"nome": nome, "ruolo": ruolo}
+            scrivi_login(login_data)
+            
             st.success(f"Password per {nome} salvata con successo!")
+            st.rerun()  # Ricarica la pagina per fare il login automaticamente
+
         elif nuova_password and nuova_password != conferma_password:
             st.error("Le password non corrispondono!")
 
     return False
 
+# Funzione per il reset della password
 def resetta_password(nome, ruolo):
     # Aggiungi la possibilità di resettare la password
     st.write(f"Stai per resettare la password per {nome}.")
@@ -154,15 +212,8 @@ def resetta_password(nome, ruolo):
     conferma_password = st.text_input("Conferma la nuova password", type="password")
 
     if nuova_password and nuova_password == conferma_password:
-        if ruolo == "Giocatrice":
-            passwords_giocatrici[nome] = nuova_password
-        elif ruolo == "Allenatore":
-            passwords_allenatori[nome] = nuova_password
-        
+        registra_password(nome, ruolo, nuova_password)
         st.success(f"La password per {nome} è stata aggiornata con successo!")
-    elif nuova_password and nuova_password != conferma_password:
-        st.error("Le password non corrispondono!")
-
 
 # Funzione di navigazione aggiornata
 def navigazione():
