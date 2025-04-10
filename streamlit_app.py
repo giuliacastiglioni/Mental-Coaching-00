@@ -438,15 +438,52 @@ def main():
             # Mostra la tabella dei dati
             st.subheader("📋 Risposte raccolte")
             st.dataframe(df_stato_mentale)
-
             # Grafici delle medie per ogni parametro mentale
             st.subheader("📊 Medie per parametro psicologico")
-
             for colonna in ["motivazione", "ansia", "concentrazione", "autostima", "stanchezza", "stress", "supporto", "soddisfazione"]:
                 media = df_stato_mentale.groupby("nome")[colonna].mean().sort_values(ascending=False)
                 st.write(f"**{colonna.capitalize()} media**")
                 st.bar_chart(media)
 
+            # 2. Distribuzione delle risposte per ogni parametro psicologico (grafico a violino)
+            st.subheader("📊 Distribuzione delle risposte per parametro psicologico")
+            for colonna in ["motivazione", "ansia", "concentrazione", "autostima", "stanchezza", "stress", "supporto", "soddisfazione"]:
+                st.write(f"**Distribuzione per {colonna.capitalize()}**")
+                fig = plt.figure(figsize=(8, 6))
+                sns.violinplot(x="nome", y=colonna, data=df_stato_mentale)
+                st.pyplot(fig)
+
+            # 3. Andamento nel tempo delle risposte (grafico a linee)
+            st.subheader("📈 Andamento nel tempo dello stato mentale")
+            df_stato_mentale["data"] = pd.to_datetime(df_stato_mentale["data"])
+            df_stato_mentale.set_index("data", inplace=True)
+
+            for colonna in ["motivazione", "ansia", "concentrazione", "autostima", "stanchezza", "stress", "supporto", "soddisfazione"]:
+                st.write(f"**Andamento di {colonna.capitalize()} nel tempo**")
+                st.line_chart(df_stato_mentale[colonna].resample('D').mean())
+
+            # 5. Analisi delle correlazioni tra i parametri psicologici
+            st.subheader("📊 Correlazione tra i parametri psicologici")
+            correlazioni = df_stato_mentale[["motivazione", "ansia", "concentrazione", "autostima", "stanchezza", "stress", "supporto", "soddisfazione"]].corr()
+            st.write(correlazioni)
+
+            fig = plt.figure(figsize=(8, 6))
+            sns.heatmap(correlazioni, annot=True, cmap="coolwarm", fmt=".2f")
+            st.pyplot(fig)
+
+            # 7. Classificazione delle Giocatrici in Base allo Stato Mentale
+            st.subheader("📊 Classificazione delle Giocatrici per Stato Mentale")
+            condizioni = {
+                "alta_motivazione": df_stato_mentale[df_stato_mentale["motivazione"] > 4],
+                "bassa_ansia": df_stato_mentale[df_stato_mentale["ansia"] < 3],
+                "alta_concentrazione": df_stato_mentale[df_stato_mentale["concentrazione"] > 4]
+            }
+
+            # Verifica le condizioni per la classificazione delle giocatrici
+            for condizione, dati in condizioni.items():
+                # Aggiungi la conversione in stringa della variabile condizione
+                st.write(f"**Giocatrici con {str(condizione.replace('_', ' ').capitalize())}:**")
+                st.write(dati)
         except FileNotFoundError:
             st.warning("⚠️ Nessun dato disponibile. Le giocatrici devono prima compilare il questionario.")
         except Exception as e:
