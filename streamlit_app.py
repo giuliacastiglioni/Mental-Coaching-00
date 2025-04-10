@@ -266,7 +266,27 @@ def audio_mindfulness():
     st.subheader("Audio Brevi per Mindfulness")
     st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3")
     st.button("Inizia audio mindfulness")
+# Funzione per ripulire il file JSON
+def pulire_file_json():
+    try:
+        # Carica i dati dal file JSON
+        with open("questionario_mentale.json", "r") as f:
+            dati = json.load(f)
 
+        # Pulisce tutti i dati nel file JSON
+        dati.clear()
+
+        # Scrive il file vuoto nel file JSON
+        with open("questionario_mentale.json", "w") as f:
+            json.dump(dati, f, indent=4)
+        
+        st.success("File JSON ripulito con successo!")  # Messaggio di successo
+    except FileNotFoundError:
+        st.warning("⚠️ Il file non è stato trovato.")
+    except json.JSONDecodeError:
+        st.warning("⚠️ Errore nella lettura del file JSON.")
+    except Exception as e:
+        st.error(f"❌ Errore: {e}")
 # -------------------- QUESTIONARIO --------------------
 def questionario_mentale():
     st.title("🧠 Come ti senti oggi?")
@@ -438,6 +458,7 @@ def main():
             # Mostra la tabella dei dati
             st.subheader("📋 Risposte raccolte")
             st.dataframe(df_stato_mentale)
+           
             # Grafici delle medie per ogni parametro mentale
             st.subheader("📊 Medie per parametro psicologico")
             for colonna in ["motivazione", "ansia", "concentrazione", "autostima", "stanchezza", "stress", "supporto", "soddisfazione"]:
@@ -479,6 +500,8 @@ def main():
                 "alta_concentrazione": df_stato_mentale[df_stato_mentale["concentrazione"] > 4]
             }
 
+            
+            
             # Verifica le condizioni per la classificazione delle giocatrici
             for condizione, dati in condizioni.items():
                 # Aggiungi la conversione in stringa della variabile condizione
@@ -487,7 +510,10 @@ def main():
         except FileNotFoundError:
             st.warning("⚠️ Nessun dato disponibile. Le giocatrici devono prima compilare il questionario.")
         except Exception as e:
-            st.error(f"❌ Errore durante la lettura dei dati: {e}")
+            st.error(f"Errore durante la lettura dei dati: {e}, non ci sono ancora dati disponibili.")
+    # Aggiungi il pulsante per ripulire il file JSON
+        if st.button("Ripulisci Dati"):
+            pulire_file_json()  # Ripulisce il file quando il pulsante viene premuto
             
 # Aggiungi la chiamata alla funzione principale
 if __name__ == "__main__":

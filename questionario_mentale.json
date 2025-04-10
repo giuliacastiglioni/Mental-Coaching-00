@@ -3,24 +3,24 @@
         "nome": "Giuli",
         "data": "2025-04-10",
         "motivazione": 3,
-        "ansia": 3,
-        "concentrazione": 3,
-        "autostima": 3,
-        "stanchezza": 3,
-        "stress": 3,
+        "ansia": 4,
+        "concentrazione": 2,
+        "autostima": 2,
+        "stanchezza": 4,
+        "stress": 4,
         "supporto": 3,
-        "soddisfazione": 3
+        "soddisfazione": 2
     },
     {
-        "nome": "Giuli",
+        "nome": "Cata",
         "data": "2025-04-10",
-        "motivazione": 3,
-        "ansia": 3,
-        "concentrazione": 3,
-        "autostima": 3,
-        "stanchezza": 3,
-        "stress": 3,
-        "supporto": 3,
-        "soddisfazione": 3
+        "motivazione": 5,
+        "ansia": 2,
+        "concentrazione": 4,
+        "autostima": 5,
+        "stanchezza": 2,
+        "stress": 2,
+        "supporto": 5,
+        "soddisfazione": 5
     }
 ]
