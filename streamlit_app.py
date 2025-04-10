@@ -651,7 +651,8 @@ def main():
 
     elif pagina == "📓 Diario personale":
         diario_personale()
-    elif pagina == "📝Diario delle emozioni":
+
+    elif pagina == "📝 Diario delle emozioni":
         diario_emozioni()
 
     elif pagina == "🧘‍♀️ Esercizi Mentali & Risorse":
