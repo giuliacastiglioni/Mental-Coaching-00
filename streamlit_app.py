@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 import bcrypt
-
+import numpy as np
 
 # -------------------- PERSONALIZZAZIONE DELLO SFONDO --------------------
 # -------------------- CARICAMENTO E CREAZIONE DEI FILE JSON --------------------
@@ -28,6 +28,7 @@ def salva_dati_json(file_path, data):
 # Percorsi dei file JSON
 file_questionario = "questionario.json"
 file_diario = "diario.json"
+file_emozioni= "emozioni.json"
 
 # Carica i dati esistenti dai file JSON
 dati_questionario = carica_dati_json(file_questionario)
@@ -229,7 +230,8 @@ def navigazione():
         pagina = st.sidebar.radio("Scegli sezione", 
                                   ["🏠 Home", 
                                    "🧠 Questionario mentale", 
-                                   "📓 Diario personale", 
+                                   "📓 Diario personale",
+                                   "📝 Diario delle emozioni", 
                                    "🧘‍♀️ Esercizi Mentali & Risorse"])
     elif st.session_state['ruolo'] == 'Allenatore':
         st.sidebar.title(f"👋 Benvenuto {st.session_state['nome']} - Allenatore!")
@@ -313,11 +315,134 @@ def visualizzazione_pre_partita():
     """)
     st.button("Inizia esercizio")
 
+# Emozioni e relative frasi di supporto psicologico
+emozioni = {
+    "Felicità": "La felicità non è il risultato di eventi esterni, ma nasce dalla capacità di vivere in armonia con ciò che siamo e con ciò che abbiamo. La felicità è il frutto di una scelta consapevole di apprezzare ogni momento, anche nelle difficoltà. Non cercarla lontano, perché è già dentro di te, pronta a fiorire.",
+    "Tristezza": "La tristezza è il linguaggio dell’anima che ha bisogno di essere ascoltata. Essa non è il nemico, ma un compagno che ci insegna la vulnerabilità e ci permette di ricostruire, più forti di prima. Non sfuggire ad essa, ma accoglila come un'opportunità di crescita interiore. Solo attraverso la tristezza possiamo apprezzare pienamente la gioia che verrà.",
+    "Ansia": "L’ansia è la voce che ci ricorda quanto è importante il nostro benessere. Non è un segno di debolezza, ma un’indicazione che stiamo affrontando sfide significative. Piuttosto che lasciarla dominarci, possiamo usarla come una guida per fare un passo indietro, respirare profondamente e scegliere consapevolmente come affrontare la situazione.",
+    "Rabbia": "La rabbia è una passione intensa che può consumarci se non la comprendiamo. Essa è una risposta a qualcosa che ci ferisce, ma è anche un’opportunità di introspezione. Invece di scagliarla verso l'esterno, chiediamoci: cosa sta cercando di insegnarmi? Quali confini voglio proteggere? Solo attraverso la riflessione possiamo trasformare la rabbia in azioni positive.",
+    "Sorpresa": "La sorpresa è il messaggio dell’universo che ci invita a rimanere aperti e ricettivi al cambiamento. Le sorprese sono spesso momenti di disordine che ci spingono fuori dalla zona di comfort, ma è solo quando abbracciamo l'incertezza che possiamo scoprire nuove possibilità. Imparare a navigare nel caos è una delle abilità più potenti che possiamo sviluppare.",
+    "Paura": "La paura è l’ombra che si forma quando ci avviciniamo a qualcosa che non conosciamo. Ma ciò che temiamo è raramente così grande o invincibile come sembra. La paura è solo un segnale che la nostra crescita sta per avvenire. Scegliere di affrontarla, passo dopo passo, è l'unico modo per superarla e scoprire una versione più forte di noi stessi.",
+    "Calma": "La calma non è l'assenza di movimento, ma la presenza di un centro interiore solido che resiste al caos esterno. Quando sei calmo, puoi osservare le tue emozioni senza esserne sopraffatto. La calma è la forza silenziosa che ti permette di rispondere alle sfide con lucidità e fiducia. È la terra sotto i piedi quando il mondo sembra tremare.",
+    "Speranza": "La speranza è la forza invisibile che ci spinge a guardare oltre le nuvole nere, a credere che, nonostante le difficoltà, c'è sempre una possibilità di miglioramento. Ogni passo verso il futuro è un atto di coraggio, ed è nella speranza che possiamo trovare la forza di trasformare i nostri sogni in realtà.",
+    "Disperazione": "La disperazione può sembrare un abisso oscuro, ma in realtà è un'opportunità nascosta. In quei momenti in cui sembra che nulla abbia senso, possiamo scegliere di guardarci dentro e trovare la nostra luce. La disperazione è il momento in cui la nostra anima è più ricettiva al cambiamento, se solo ci fermiamo ad ascoltarla.",
+    "Confusione": "La confusione è una nebbia che avvolge la nostra mente, ma è anche il primo passo verso la chiarezza. In quei momenti in cui non sappiamo cosa fare, possiamo scegliere di fermarci e osservare con calma. La chiarezza non arriva con la fretta, ma con la pazienza di lasciar fluire i pensieri senza giudizio.",
+    "Gratitudine": "La gratitudine è la chiave che apre la porta alla felicità. Non si tratta di ignorare le difficoltà, ma di riconoscere il valore anche nei piccoli momenti di bellezza quotidiana. Quando siamo grati, il nostro cuore si espande e ci connettiamo a una forza più grande di noi stessi.",
+    "Vergogna": "La vergogna è una pesantezza che portiamo dentro, ma non è una condanna permanente. È un segnale che ci invita a guardare dentro di noi, a perdonarci e a fare spazio alla crescita. La vergogna può diventare il terreno fertile da cui nascono la consapevolezza e la libertà.",
+    "Amore": "L’amore non è solo un’emozione, ma una forza che trasforma il mondo. È la capacità di vedere l'altro con occhi pieni di comprensione, rispetto e cura. Amare non significa non soffrire mai, ma essere pronti a condividere i momenti di gioia e di dolore, sapendo che ogni emozione è parte di un legame più profondo.",
+    "Solitudine": "La solitudine è spesso vista come un nemico, ma è in quei momenti di silenzio che possiamo riscoprire chi siamo veramente. La solitudine non significa isolamento, ma è un'opportunità di connessione con la nostra essenza, di ascoltare ciò che la vita ha da dirci senza distrazioni esterne.",
+    "Rimpianto": "Il rimpianto è il peso del passato che ancora portiamo con noi. Tuttavia, ogni rimpianto è anche una lezione che ci invita a vivere con maggiore consapevolezza nel presente. Non permettere che i rimpianti definiscano chi sei, ma usali come un trampolino per diventare la persona che desideri essere.",
+    "Indifferenza": "L'indifferenza è un muro che erigiamo intorno a noi per proteggere il nostro cuore. Ma questo muro non ci rende più forti, solo più isolati. L'indifferenza ci impedisce di vivere pienamente e di connetterci con gli altri. Scegli di abbattere quel muro e di tornare a sentire.",
+    "Soddisfazione": "La soddisfazione non arriva da ciò che possediamo, ma dal riconoscimento del nostro cammino. Ogni piccolo traguardo che raggiungiamo è il frutto della nostra determinazione. La soddisfazione è un segno che stiamo crescendo, che siamo più forti di quanto pensavamo."
+}
+
+# Funzione per visualizzare il grafico delle emozioni selezionate con intensità personalizzate
+def visualizza_emozioni(emozioni_selezionate):
+    # Creare un dizionario per memorizzare l'intensità delle emozioni selezionate
+    emozioni_count = {}
+    
+    # Chiedere l'intensità per ogni emozione selezionata
+    for emozione in emozioni_selezionate:
+        intensita = st.slider(f"Seleziona l'intensità per l'emozione {emozione}:", min_value=0, max_value=10, value=5)
+        emozioni_count[emozione] = intensita
+    
+    # Creare un DataFrame per il grafico
+    df = pd.DataFrame(list(emozioni_count.items()), columns=["Emozione", "Intensità"])
+    
+    # Visualizzare il grafico a barre
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.barplot(x="Emozione", y="Intensità", data=df, palette="Blues_d")
+    ax.set_title("Intensità delle Emozioni Selezionate", fontsize=16)
+    ax.set_xlabel('Emozioni')
+    ax.set_ylabel('Intensità (0-10)')
+    plt.xticks(rotation=45)
+    st.pyplot(fig)
+    
+# Funzione per l'area del diario emozioni
 def diario_emozioni():
-    st.subheader("Diario delle Emozioni")
-    emozioni = st.text_area("Come ti senti oggi?")
-    if st.button("Salva emozioni"):
-        st.success("Le tue emozioni sono state salvate!")
+    st.title("Diario delle Emozioni")
+
+    st.write("Oggi, come ti senti? Seleziona le emozioni che ti rappresentano oggi.")
+
+    # Seleziona più emozioni
+    emozioni_selezionate = st.multiselect("Seleziona le emozioni che stai provando:", list(emozioni.keys()))
+
+    # Visualizza la frase di supporto per ciascuna emozione selezionata
+    if emozioni_selezionate:
+        st.write("**Frasi di supporto per le emozioni selezionate:**")
+        for emozione in emozioni_selezionate:
+            st.write(f"**{emozione}:**")
+            st.write(f"'{emozioni[emozione]}'")
+
+        # Visualizza il grafico delle emozioni selezionate
+        visualizza_emozioni(emozioni_selezionate)
+
+        # Aggiungi un'area di riflessione per ciascuna emozione
+        riflessioni = {}
+        for emozione in emozioni_selezionate:
+            riflessioni[emozione] = st.text_area(f"Come ti senti riguardo a '{emozione}'?", "")
+
+        # Salva nel file specifico per le emozioni
+        if st.button('Salva Emozioni'):
+            if 'nome' in st.session_state:
+                nome = st.session_state['nome']
+                oggi = datetime.date.today().isoformat()
+
+                # Crea un oggetto per le emozioni selezionate e le riflessioni
+                emozioni_data = {
+                    "nome": nome,
+                    "data": oggi,
+                    "emozioni_selezionate": emozioni_selezionate,
+                    "riflessioni": riflessioni
+                }
+
+                try:
+                    # Crea il file delle emozioni se non esiste
+                    if not os.path.exists("emozioni.json"):
+                        with open("emozioni.json", "w") as f:
+                            json.dump([], f)
+
+                    with open("emozioni.json", "r+") as f:
+                        data = json.load(f)
+                        data.append(emozioni_data)
+                        f.seek(0)
+                        json.dump(data, f, ensure_ascii=False, indent=2)
+
+                    st.success("✅ Le tue emozioni e riflessioni sono state salvate correttamente!")
+
+                except Exception as e:
+                    st.error(f"❌ Errore durante il salvataggio: {e}")
+            else:
+                st.error("❌ Devi essere loggato per salvare nel diario.")
+    else:
+        st.write("Non hai selezionato nessuna emozione.")
+# Visualizza le note precedenti
+    if os.path.exists("emozioni.json"):
+        with open("emozioni.json", "r") as f:
+            tutte_le_note = json.load(f)
+
+        if 'nome' in st.session_state:
+            nome = st.session_state['nome']
+
+            # Filtra le note per il nome dell'utente
+            emozioni_data = [r for r in tutte_le_note if r["nome"] == nome]
+
+            if emozioni_data:
+                for riga in sorted(emozioni_data, key=lambda x: x["data"], reverse=True):
+                    st.markdown(f"**{riga['data']}**")
+
+                    # Visualizza le emozioni e le riflessioni per ciascuna
+                    for emozione in riga['emozioni_selezionate']:
+                        riflessione = riga['riflessioni'].get(emozione, "Nessuna riflessione salvata.")
+                        st.markdown(f"**{emozione}:** {riflessione}")
+                    
+                    st.markdown("---")
+            else:
+                st.info("📝 Nessun appunto trovato.")
+        else:
+            st.info("📝 Devi essere loggato per visualizzare gli appunti.")
+    else:
+        st.info("📝 Nessun appunto trovato.")
 
 def frasi_motivazionali():
     # Frasi motivazionali estratte da calciatori famosi
@@ -450,37 +575,44 @@ def diario_personale():
     st.title("📓 Diario personale")
     oggi = datetime.date.today().isoformat()
 
+    # Aggiungi un'area di testo per scrivere il pensiero del giorno
     testo = st.text_area("Scrivi qui il tuo pensiero di oggi")
+    
     if 'nome' in st.session_state:
         nome = st.session_state['nome']
-
+    
+    # Controllo se il campo "testo" non è vuoto prima di salvare
     if st.button("Salva nel diario"):
-        nuova_entry = {
-            "nome": nome,
-            "data": oggi,
-            "testo": testo
-        }
+        if testo.strip() == "":
+            st.error("❌ Il pensiero di oggi non può essere vuoto.")
+        else:
+            nuova_entry = {
+                "nome": nome,
+                "data": oggi,
+                "testo": testo,
+            }
 
-        try:
-            # Crea il file se non esiste
-            if not os.path.exists("diario_personale.json"):
-                with open("diario_personale.json", "w") as f:
-                    json.dump([], f)
+            try:
+                # Crea il file se non esiste
+                if not os.path.exists("diario_personale.json"):
+                    with open("diario_personale.json", "w") as f:
+                        json.dump([], f)
 
-            with open("diario_personale.json", "r+") as f:
-                data = json.load(f)
-                data.append(nuova_entry)
-                f.seek(0)
-                json.dump(data, f, ensure_ascii=False, indent=2)
+                with open("diario_personale.json", "r+") as f:
+                    data = json.load(f)
+                    data.append(nuova_entry)
+                    f.seek(0)
+                    json.dump(data, f, ensure_ascii=False, indent=2)
 
-            st.success("✅ Salvato nel diario!")
+                st.success("✅ Salvato nel diario!")
 
-        except Exception as e:
-            st.error(f"❌ Errore durante il salvataggio: {e}")
+            except Exception as e:
+                st.error(f"❌ Errore durante il salvataggio: {e}")
 
     st.markdown("---")
     st.subheader("📖 I tuoi appunti passati")
 
+    # Visualizza le note precedenti
     if os.path.exists("diario_personale.json"):
         with open("diario_personale.json", "r") as f:
             tutte_le_note = json.load(f)
@@ -489,14 +621,17 @@ def diario_personale():
 
         if diario_nome:
             for riga in sorted(diario_nome, key=lambda x: x["data"], reverse=True):
-                st.markdown(f"**{riga['data']}**")
-                st.markdown(f"> {riga['testo']}")
-                st.markdown("---")
+                # Controlliamo se la chiave 'testo' esiste nella riga
+                if 'testo' in riga:
+                    st.markdown(f"**{riga['data']}**")
+                    st.markdown(f"> {riga['testo']}")
+                    st.markdown("---")
+                else:
+                    st.warning(f"⚠️ Non ci sono appunti per la data {riga['data']}.")
         else:
             st.info("📝 Nessun appunto trovato.")
     else:
         st.info("📝 Nessun appunto trovato.")
-
 # Funzione principale dell'app
 def main():
     if 'nome' not in st.session_state:
@@ -516,6 +651,8 @@ def main():
 
     elif pagina == "📓 Diario personale":
         diario_personale()
+    elif pagina == "📝Diario delle emozioni":
+        diario_emozioni()
 
     elif pagina == "🧘‍♀️ Esercizi Mentali & Risorse":
         st.title("🧘‍♀️ Esercizi Mentali & Risorse")
@@ -523,7 +660,6 @@ def main():
         esercizio = st.radio("Scegli un esercizio mentale da fare:", 
                                 ["Respirazione", 
                                 "Visualizzazione positiva pre-partita", 
-                                "Diario delle emozioni", 
                                 "Frasi motivazionali", 
                                 "Audio brevi (mindfulness)"])
         
@@ -531,8 +667,7 @@ def main():
             esercizio_respirazione()
         elif esercizio == "Visualizzazione positiva pre-partita":
             visualizzazione_pre_partita()
-        elif esercizio == "Diario delle emozioni":
-            diario_emozioni()
+
         elif esercizio == "Frasi motivazionali":
             frasi_motivazionali()
         elif esercizio == "Audio brevi (mindfulness)":

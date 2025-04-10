@@ -8,3 +8,4 @@ seaborn
 airtable
 pyairtable
 bcrypt
+numpy
