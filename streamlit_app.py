@@ -1,16 +1,32 @@
 import streamlit as st
 import datetime
 import pandas as pd
-import gspread
-from google.oauth2 import service_account
 import random
 import json
 import time
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-
+import os
 # -------------------- PERSONALIZZAZIONE DELLO SFONDO --------------------
+# -------------------- CARICAMENTO E CREAZIONE DEI FILE JSON --------------------
+def carica_dati_json(file_path):
+    """Carica i dati da un file JSON, creando un file vuoto se non esiste"""
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as f:
+            return json.load(f)
+    else:
+        return {}
+
+def salva_dati_json(file_path, data):
+    """Salva i dati nel file JSON"""
+    with open(file_path, 'w') as f:
+        json.dump(data, f, indent=4)
+
+# Percorsi dei file JSON
+file_questionario = "questionario.json"
+file_diario = "diario.json"
+
+# Carica i dati esistenti dai file JSON
+dati_questionario = carica_dati_json(file_questionario)
+dati_diario = carica_dati_json(file_diario)
 
 # Funzione per aggiungere uno sfondo azzurro chiaro
 def set_bg_color():
@@ -100,28 +116,6 @@ def style_sliders():
 # Applicare lo stile degli slider
 style_sliders()
 
-def ottieni_dati_sheets():
-    # Carica le credenziali da un file JSON (che dovresti ottenere dal tuo file secrets.toml)
-    credentials_info = json.loads(st.secrets["gcp"]["credentials"])  # carica le credenziali come dizionario
-    
-    # Autenticazione con Google Sheets
-    credentials = service_account.Credentials.from_service_account_info(
-        credentials_info, 
-        scopes=["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    )
-
-    # Autorizza il client gspread
-    client = gspread.authorize(credentials)
-
-    # ID dei fogli Google
-    diario_data = client.open_by_key('1s0aOTMGMzVaVxdfIm28dZt-71klg8cO01EOieLg6cLE').sheet1
-    mental_data = client.open_by_key('1GLE2kS0NRMCF6c4lC6ysd3Igx_HbW_2ewBypkA0-09E').sheet1
-
-    # Ottieni i dati dai fogli
-    df_stato_mentale = pd.DataFrame(mental_data.get_all_records())
-    df_diari = pd.DataFrame(diario_data.get_all_records())
-
-    return df_stato_mentale, df_diari, mental_data, diario_data
 # -------------------- LOGIN --------------------
 def login():
     st.title("Login - Mental Coach per Calcio a 7 Femminile")
@@ -222,55 +216,9 @@ def home():
     st.image("https://th.bing.com/th/id/OIP.Sz-ErltHiavXNHUAne6W_QHaE8?pid=ImgDet&w=184&h=122&c=7&dpr=1,3", use_container_width=True)
     st.markdown("Usa il menu a sinistra per iniziare ✨")
 
-def dashboard_allenatore(df_mental):
-    st.title("Dashboard Allenatore - Risultati Questionario Mentale")
-    st.write("Ecco la panoramica dei risultati del questionario mentale delle giocatrici:")
-
-    # Statistiche generali del questionario
-    st.subheader("Statistiche generali del questionario")
-    st.write(f"Numero totale di giocatrici che hanno completato il questionario: {df_mental.shape[0]}")
-
-    # Calcolare la media dei punteggi per ogni domanda
-    colonne_punteggio = ['ansia', 'concentrazione', 'motivazione', 'autocontrollo', 'stress']
-    medie = df_mental[colonne_punteggio].mean().reset_index()
-    medie.columns = ['Domanda', 'Punteggio medio']
-    st.write("Punteggi medi per domanda:")
-    st.dataframe(medie)
-
-    # Grafico dei punteggi medi per ogni domanda
-    st.subheader("Punteggi medi per domanda")
-    fig, ax = plt.subplots()
-    sns.barplot(x='Domanda', y='Punteggio medio', data=medie, ax=ax)
-    ax.set_title("Punteggi medi per domanda del questionario")
-    st.pyplot(fig)
-
-    # Visualizza la distribuzione delle risposte (per esempio per la 'motivazione')
-    st.subheader("Distribuzione delle risposte per 'motivazione'")
-    fig, ax = plt.subplots()
-    sns.histplot(df_mental['motivazione'], kde=True, ax=ax)
-    ax.set_title("Distribuzione delle risposte per 'motivazione'")
-    st.pyplot(fig)
-
-    # Media totale dei punteggi (somma di tutti i punteggi)
-    st.subheader("Punteggio totale medio delle giocatrici")
-    df_mental['punteggio_totale'] = df_mental[colonne_punteggio].sum(axis=1)
-    st.write(f"Punteggio totale medio delle giocatrici: {df_mental['punteggio_totale'].mean():.2f}")
-
-    # Riepilogo delle giocatrici con i loro punteggi
-    st.subheader("Dettaglio per giocatrice")
-    st.dataframe(df_mental[['giocatrice'] + colonne_punteggio + ['punteggio_totale']])
-
-    # Filtro per visualizzare le giocatrici con punteggi particolari
-    st.subheader("Filtra per punteggio totale")
-    punteggio_minimo = st.slider("Seleziona il punteggio minimo", min_value=int(df_mental['punteggio_totale'].min()), max_value=int(df_mental['punteggio_totale'].max()), value=int(df_mental['punteggio_totale'].min()))
-    giocatrici_filtrate = df_mental[df_mental['punteggio_totale'] >= punteggio_minimo]
-    st.write(f"Giocatrici con punteggio totale maggiore o uguale a {punteggio_minimo}:")
-    st.dataframe(giocatrici_filtrate)
-
-    # Concludi con una panoramica
-    st.subheader("Panoramica")
-    st.write("Questa dashboard fornisce una panoramica dei risultati dei questionari mentali delle giocatrici. L'allenatore può utilizzarla per analizzare i punteggi medi, la distribuzione delle risposte e filtrare per le giocatrici con punteggi specifici.")
-
+#def dashboard_allenatore(df_mental):
+    #st.title("Dashboard Allenatore - Risultati Questionario Mentale")
+    #st.write("Ecco la panoramica dei risultati del questionario mentale delle giocatrici:")
 # -------------------- Esercizi Mentali & Risorse --------------------
 
 # Definisci tutte le funzioni prima del blocco principale
@@ -367,14 +315,131 @@ def audio_mindfulness():
     st.subheader("Audio Brevi per Mindfulness")
     st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3")
     st.button("Inizia audio mindfulness")
+# -------------------- QUESTIONARIO --------------------
+def questionario_mentale():
+    st.title("🧠 Come ti senti oggi?")
+    oggi = datetime.date.today().isoformat()
+
+    # Domande originali
+    motivazione = st.slider("Motivazione (quanto ti senti ispirata per allenarti?)", 1, 5, 3, step=1)
+    ansia = st.slider("Ansia (quanto ti senti preoccupata o tesa?)", 1, 5, 3, step=1)
+    concentrazione = st.slider("Concentrazione (quanto riesci a mantenere l'attenzione?)", 1, 5, 3, step=1)
+    autostima = st.slider("Autostima (quanto credi in te stessa?)", 1, 5, 3, step=1)
+
+    st.markdown("---")
+    st.subheader("Ulteriori aspetti da valutare:")
+
+    # Nuove domande aggiunte:
+    st.markdown("**Stanchezza Mentale:**")
+    st.markdown("Valuta quanto ti senti mentalmente affaticata oggi.")
+    stanchezza = st.slider("Stanchezza Mentale", 1, 5, 3, step=1)
+
+    st.markdown("**Livello di Stress:**")
+    st.markdown("Quanto senti il carico dello stress nella giornata odierna?")
+    stress = st.slider("Stress", 1, 5, 3, step=1)
+
+    st.markdown("**Senso di Supporto:**")
+    st.markdown("Quanto ti senti supportata dalla squadra e dagli allenatori?")
+    supporto = st.slider("Senso di Supporto", 1, 5, 3, step=1)
+
+    st.markdown("**Soddisfazione Personale:**")
+    st.markdown("Quanto sei soddisfatta della tua performance recente?")
+    soddisfazione = st.slider("Soddisfazione Personale", 1, 5, 3, step=1)
+
+    # Verifica che il nome sia stato inserito nella homepage
+    if 'nome' not in st.session_state:
+        st.error("⚠️ Inserisci prima il tuo nome nella homepage.")
+    else:
+        nome = st.session_state['nome']
+        if st.button("Salva risposte"):
+            risposta = {
+                "nome": nome,
+                "data": oggi,
+                "motivazione": motivazione,
+                "ansia": ansia,
+                "concentrazione": concentrazione,
+                "autostima": autostima,
+                "stanchezza": stanchezza,
+                "stress": stress,
+                "supporto": supporto,
+                "soddisfazione": soddisfazione
+            }
+
+            try:
+                # Percorso per il salvataggio su file JSON
+                if not os.path.exists("questionario_mentale.json"):
+                    with open("questionario_mentale.json", "w") as f:
+                        json.dump([], f)
+
+                with open("questionario_mentale.json", "r+") as f:
+                    data = json.load(f)
+                    data.append(risposta)
+                    f.seek(0)
+                    json.dump(data, f, indent=4)
+
+                st.success("✅ Risposte salvate con successo!")
+
+            except Exception as e:
+                st.error(f"❌ Errore durante il salvataggio: {e}")
+
+# -------------------- DIARIO --------------------
+def diario_personale():
+    st.title("📓 Diario personale")
+    oggi = datetime.date.today().isoformat()
+
+    testo = st.text_area("Scrivi qui il tuo pensiero di oggi")
+    if 'nome' in st.session_state:
+        nome = st.session_state['nome']
+
+    if st.button("Salva nel diario"):
+        nuova_entry = {
+            "nome": nome,
+            "data": oggi,
+            "testo": testo
+        }
+
+        try:
+            # Crea il file se non esiste
+            if not os.path.exists("diario_personale.json"):
+                with open("diario_personale.json", "w") as f:
+                    json.dump([], f)
+
+            with open("diario_personale.json", "r+") as f:
+                data = json.load(f)
+                data.append(nuova_entry)
+                f.seek(0)
+                json.dump(data, f, ensure_ascii=False, indent=2)
+
+            st.success("✅ Salvato nel diario!")
+
+        except Exception as e:
+            st.error(f"❌ Errore durante il salvataggio: {e}")
+
+    st.markdown("---")
+    st.subheader("📖 I tuoi appunti passati")
+
+    if os.path.exists("diario_personale.json"):
+        with open("diario_personale.json", "r") as f:
+            tutte_le_note = json.load(f)
+
+        diario_nome = [r for r in tutte_le_note if r["nome"] == nome]
+
+        if diario_nome:
+            for riga in sorted(diario_nome, key=lambda x: x["data"], reverse=True):
+                st.markdown(f"**{riga['data']}**")
+                st.markdown(f"> {riga['testo']}")
+                st.markdown("---")
+        else:
+            st.info("📝 Nessun appunto trovato.")
+    else:
+        st.info("📝 Nessun appunto trovato.")
+
 # Funzione principale dell'app
 def main():
     if 'nome' not in st.session_state:
         if not login():
             return
-
-    df_stato_mentale, df_diari, mental_data, diario_data = ottieni_dati_sheets()
-
+         
     pagina = navigazione()
     
     if pagina is None:
@@ -382,101 +447,14 @@ def main():
 
     if pagina == "🏠 Home":
         home()
-
-#------------ QUESTIONARIO --------------------
-    elif pagina == "🧠 Questionario mentale":
-        st.title("🧠 Come ti senti oggi?")
-        oggi = datetime.date.today().isoformat()
-
-        # Domande originali
-        motivazione = st.slider("Motivazione (quanto ti senti ispirata per allenarti?)", 1, 5, 3, step=1)
-        ansia = st.slider("Ansia (quanto ti senti preoccupata o tesa?)", 1, 5, 3, step=1)
-        concentrazione = st.slider("Concentrazione (quanto riesci a mantenere l'attenzione?)", 1, 5, 3, step=1)
-        autostima = st.slider("Autostima (quanto credi in te stessa?)", 1, 5, 3, step=1)
-
-        st.markdown("---")
-        st.subheader("Ulteriori aspetti da valutare:")
-
-        # Nuove domande aggiunte:
-        st.markdown("**Stanchezza Mentale:**")
-        st.markdown("Valuta quanto ti senti mentalmente affaticata oggi.")
-        stanchezza = st.slider("Stanchezza Mentale", 1, 5, 3, step=1)
         
-        st.markdown("**Livello di Stress:**")
-        st.markdown("Quanto senti il carico dello stress nella giornata odierna?")
-        stress = st.slider("Stress", 1, 5, 3, step=1)
-        
-        st.markdown("**Senso di Supporto:**")
-        st.markdown("Quanto ti senti supportata dalla squadra e dagli allenatori?")
-        supporto = st.slider("Senso di Supporto", 1, 5, 3, step=1)
-        
-        st.markdown("**Soddisfazione Personale:**")
-        st.markdown("Quanto sei soddisfatta della tua performance recente?")
-        soddisfazione = st.slider("Soddisfazione Personale", 1, 5, 3, step=1)
+    if pagina == "🧠 Questionario mentale":
+        questionario_mentale()
 
-    # Verifica che il nome sia stato inserito nella homepage
-        if 'nome' not in st.session_state:
-            st.error("⚠️ Inserisci prima il tuo nome nella homepage.")
-        else:
-            nome = st.session_state['nome']
-            if st.button("Salva risposte"):
-                try:
-                    nuova_riga = [
-                        nome,
-                        oggi,
-                        motivazione,
-                        ansia,
-                        concentrazione,
-                        autostima,
-                        stanchezza,
-                        stress,
-                        supporto,
-                        soddisfazione,
-                    ]
-                    mental_data.append_row(nuova_riga)
-                    st.success("✅ Risposte salvate con successo!")
-                except Exception as e:
-                    st.error(f"❌ Errore durante il salvataggio: {e}")
-
-        # -------------------- DIARIO --------------------
     elif pagina == "📓 Diario personale":
-        st.title("📓 Diario personale")
-        oggi = datetime.date.today().isoformat()
+        diario_personale()
 
-        testo = st.text_area("Scrivi qui il tuo pensiero di oggi")
-        if 'nome' in st.session_state:
-            nome = st.session_state['nome']
-        if st.button("Salva nel diario"):
-            nuova_riga = [nome, oggi, testo]
-            diario_data.append_row(nuova_riga)
-            st.success("Salvato nel diario!")
-
-        st.markdown("---")
-        st.subheader("📖 I tuoi appunti passati")
-        diario_df = pd.DataFrame(diario_data.get_all_records())
-        diario_nome = diario_df[diario_df["nome"] == nome]
-       # st.write(diario_df.columns)  # Questo ti mostra i nomi delle colonne
-
-        for _, row in diario_nome.iterrows():
-            st.markdown(f"**{row['data']}**")
-            st.markdown(f"> {row['testo']}")
-            st.markdown("---")
-        
-        time.sleep(60)  # Pausa di 60 secondi
     # -------------------- DASHBOARD --------------------
-    elif pagina == "📊 Dashboard (solo visualizzazione)":
-        st.title("📊 I tuoi stati mentali nel tempo")
-        df = pd.DataFrame(mental_data.get_all_records())
-        df = df[df["nome"] == nome]
-
-        if df.empty:
-            st.info("Non ci sono ancora dati. Compila il questionario!")
-        else:
-            df["data"] = pd.to_datetime(df["data"])
-            st.line_chart(df.set_index("data")[["motivazione", "ansia", "concentrazione", "autostima","stanchezza",	"stress",	"supporto",	"soddisfazione"]])
-
-
-
     elif pagina == "🧘‍♀️ Esercizi Mentali & Risorse":
         st.title("🧘‍♀️ Esercizi Mentali & Risorse")
         
@@ -497,6 +475,31 @@ def main():
             frasi_motivazionali()
         elif esercizio == "Audio brevi (mindfulness)":
             audio_mindfulness()
+
+    elif pagina == "📊 Dashboard Allenatore":
+        st.title("📊 Dashboard Allenatore - Stato Mentale delle Giocatrici")
+
+        try:
+            with open("questionario_mentale.json", "r") as f:
+                dati = json.load(f)
+            df_stato_mentale = pd.DataFrame(dati)
+
+            # Mostra la tabella dei dati
+            st.subheader("📋 Risposte raccolte")
+            st.dataframe(df_stato_mentale)
+
+            # Grafici delle medie per ogni parametro mentale
+            st.subheader("📊 Medie per parametro psicologico")
+
+            for colonna in ["motivazione", "ansia", "concentrazione", "autostima", "stanchezza", "stress", "supporto", "soddisfazione"]:
+                media = df_stato_mentale.groupby("nome")[colonna].mean().sort_values(ascending=False)
+                st.write(f"**{colonna.capitalize()} media**")
+                st.bar_chart(media)
+
+        except FileNotFoundError:
+            st.warning("⚠️ Nessun dato disponibile. Le giocatrici devono prima compilare il questionario.")
+        except Exception as e:
+            st.error(f"❌ Errore durante la lettura dei dati: {e}")
 
 # Aggiungi la chiamata alla funzione principale
 if __name__ == "__main__":
