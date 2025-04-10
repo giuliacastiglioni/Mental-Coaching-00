@@ -521,13 +521,13 @@ def main():
         st.title("🧘‍♀️ Esercizi Mentali & Risorse")
         
         esercizio = st.radio("Scegli un esercizio mentale da fare:", 
-                                ["Respirazione quadrata", 
+                                ["Respirazione", 
                                 "Visualizzazione positiva pre-partita", 
                                 "Diario delle emozioni", 
                                 "Frasi motivazionali", 
                                 "Audio brevi (mindfulness)"])
         
-        if esercizio == "Respirazione quadrata":
+        if esercizio == "Respirazione":
             esercizio_respirazione()
         elif esercizio == "Visualizzazione positiva pre-partita":
             visualizzazione_pre_partita()
