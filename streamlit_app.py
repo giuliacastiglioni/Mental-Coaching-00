@@ -6,7 +6,7 @@ import json
 import time
 import matplotlib.pyplot as plt
 import seaborn as sns
-
+import os
 
 # -------------------- PERSONALIZZAZIONE DELLO SFONDO --------------------
 # -------------------- CARICAMENTO E CREAZIONE DEI FILE JSON --------------------
@@ -67,80 +67,6 @@ def style_buttons():
 # Applica la personalizzazione dei bottoni
 style_buttons()
 
-# Personalizzazione degli slider
-def style_sliders():
-    st.markdown("""
-        <style>
-        /* Aumenta la dimensione del cursore e cambia il colore */
-        .stSlider input[type="range"] {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 20px;
-            border-radius: 10px;
-            background: #e0e0e0;  /* Colore dello sfondo dello slider */
-        }
-
-        .stSlider input[type="range"]::-webkit-slider-runnable-track {
-            height: 8px;
-            border-radius: 5px;
-            background: #e0e0e0;  /* Colore dello sfondo del percorso */
-        }
-
-        .stSlider input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 30px;
-            width: 30px;
-            border-radius: 50%;
-            background: #4a90e2;  /* Blu */
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .stSlider input[type="range"]:hover::-webkit-slider-thumb {
-            background: #357abd;  /* Blu più scuro quando si passa sopra */
-        }
-
-        /* Firefox */
-        .stSlider input[type="range"]::-moz-range-thumb {
-            height: 30px;
-            width: 30px;
-            border-radius: 50%;
-            background: #4a90e2;  /* Blu */
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .stSlider input[type="range"]:hover::-moz-range-thumb {
-            background: #357abd;  /* Blu più scuro quando si passa sopra */
-        }
-        </style>
-    """, unsafe_allow_html=True)
-
-# Applicare lo stile degli slider
-style_sliders()
-
-def ottieni_dati_sheets():
-    # Carica le credenziali da un file JSON (che dovresti ottenere dal tuo file secrets.toml)
-    credentials_info = json.loads(st.secrets["gcp"]["credentials"])  # carica le credenziali come dizionario
-    
-    # Autenticazione con Google Sheets
-    credentials = service_account.Credentials.from_service_account_info(
-        credentials_info, 
-        scopes=["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    )
-
-    # Autorizza il client gspread
-    client = gspread.authorize(credentials)
-
-    # ID dei fogli Google
-    diario_data = client.open_by_key('1s0aOTMGMzVaVxdfIm28dZt-71klg8cO01EOieLg6cLE').sheet1
-    mental_data = client.open_by_key('1GLE2kS0NRMCF6c4lC6ysd3Igx_HbW_2ewBypkA0-09E').sheet1
-
-    # Ottieni i dati dai fogli
-    df_stato_mentale = pd.DataFrame(mental_data.get_all_records())
-    df_diari = pd.DataFrame(diario_data.get_all_records())
-
-    return df_stato_mentale, df_diari, mental_data, diario_data
 # -------------------- LOGIN --------------------
 def login():
     st.title("Login - Mental Coach per Calcio a 7 Femminile")
@@ -237,9 +163,6 @@ def home():
     st.image("https://th.bing.com/th/id/OIP.Sz-ErltHiavXNHUAne6W_QHaE8?pid=ImgDet&w=184&h=122&c=7&dpr=1,3", use_container_width=True)
     st.markdown("Usa il menu a sinistra per iniziare ✨")
 
-#def dashboard_allenatore(df_mental):
-    #st.title("Dashboard Allenatore - Risultati Questionario Mentale")
-    #st.write("Ecco la panoramica dei risultati del questionario mentale delle giocatrici:")
 # -------------------- Esercizi Mentali & Risorse --------------------
 
 # Definisci tutte le funzioni prima del blocco principale
@@ -343,26 +266,11 @@ def audio_mindfulness():
     st.subheader("Audio Brevi per Mindfulness")
     st.audio("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3")
     st.button("Inizia audio mindfulness")
-# Funzione principale dell'app
-def main():
-    if 'nome' not in st.session_state:
-        if not login():
-            return
 
-    df_stato_mentale, df_diari, mental_data, diario_data = ottieni_dati_sheets()
-
-    pagina = navigazione()
-    
-    if pagina is None:
-        return
-
-    if pagina == "🏠 Home":
-        home()
-
-#------------ QUESTIONARIO --------------------
-    elif pagina == "🧠 Questionario mentale":
-        st.title("🧠 Come ti senti oggi?")
-        oggi = datetime.date.today().isoformat()
+# -------------------- QUESTIONARIO --------------------
+def questionario_mentale():
+    st.title("🧠 Come ti senti oggi?")
+    oggi = datetime.date.today().isoformat()
 
     # Domande originali
     motivazione = st.slider("Motivazione (quanto ti senti ispirata per allenarti?)", 1, 5, 3, step=1)
@@ -391,67 +299,112 @@ def main():
     soddisfazione = st.slider("Soddisfazione Personale", 1, 5, 3, step=1)
 
     # Verifica che il nome sia stato inserito nella homepage
-        if 'nome' not in st.session_state:
-            st.error("⚠️ Inserisci prima il tuo nome nella homepage.")
-        else:
-            nome = st.session_state['nome']
-            if st.button("Salva risposte"):
-                try:
-                    nuova_riga = [
-                        nome,
-                        oggi,
-                        motivazione,
-                        ansia,
-                        concentrazione,
-                        autostima,
-                        stanchezza,
-                        stress,
-                        supporto,
-                        soddisfazione,
-                    ]
-                    mental_data.append_row(nuova_riga)
-                    st.success("✅ Risposte salvate con successo!")
-                except Exception as e:
-                    st.error(f"❌ Errore durante il salvataggio: {e}")
+    if 'nome' not in st.session_state:
+        st.error("⚠️ Inserisci prima il tuo nome nella homepage.")
+    else:
+        nome = st.session_state['nome']
+        if st.button("Salva risposte"):
+            risposta = {
+                "nome": nome,
+                "data": oggi,
+                "motivazione": motivazione,
+                "ansia": ansia,
+                "concentrazione": concentrazione,
+                "autostima": autostima,
+                "stanchezza": stanchezza,
+                "stress": stress,
+                "supporto": supporto,
+                "soddisfazione": soddisfazione
+            }
 
-        # -------------------- DIARIO --------------------
+            try:
+                # Percorso per il salvataggio su file JSON
+                if not os.path.exists("questionario_mentale.json"):
+                    with open("questionario_mentale.json", "w") as f:
+                        json.dump([], f)
+
+                with open("questionario_mentale.json", "r+") as f:
+                    data = json.load(f)
+                    data.append(risposta)
+                    f.seek(0)
+                    json.dump(data, f, indent=4)
+
+                st.success("✅ Risposte salvate con successo!")
+
+            except Exception as e:
+                st.error(f"❌ Errore durante il salvataggio: {e}")
+
+# -------------------- DIARIO --------------------
+def diario_personale():
+    st.title("📓 Diario personale")
+    oggi = datetime.date.today().isoformat()
+
+    testo = st.text_area("Scrivi qui il tuo pensiero di oggi")
+    if 'nome' in st.session_state:
+        nome = st.session_state['nome']
+
+    if st.button("Salva nel diario"):
+        nuova_entry = {
+            "nome": nome,
+            "data": oggi,
+            "testo": testo
+        }
+
+        try:
+            # Crea il file se non esiste
+            if not os.path.exists("diario_personale.json"):
+                with open("diario_personale.json", "w") as f:
+                    json.dump([], f)
+
+            with open("diario_personale.json", "r+") as f:
+                data = json.load(f)
+                data.append(nuova_entry)
+                f.seek(0)
+                json.dump(data, f, ensure_ascii=False, indent=2)
+
+            st.success("✅ Salvato nel diario!")
+
+        except Exception as e:
+            st.error(f"❌ Errore durante il salvataggio: {e}")
+
+    st.markdown("---")
+    st.subheader("📖 I tuoi appunti passati")
+
+    if os.path.exists("diario_personale.json"):
+        with open("diario_personale.json", "r") as f:
+            tutte_le_note = json.load(f)
+
+        diario_nome = [r for r in tutte_le_note if r["nome"] == nome]
+
+        if diario_nome:
+            for riga in sorted(diario_nome, key=lambda x: x["data"], reverse=True):
+                st.markdown(f"**{riga['data']}**")
+                st.markdown(f"> {riga['testo']}")
+                st.markdown("---")
+        else:
+            st.info("📝 Nessun appunto trovato.")
+    else:
+        st.info("📝 Nessun appunto trovato.")
+
+# Funzione principale dell'app
+def main():
+    if 'nome' not in st.session_state:
+        if not login():
+            return
+
+    pagina = navigazione()
+    
+    if pagina is None:
+        return
+
+    if pagina == "🏠 Home":
+        home()
+
+    if pagina == "🧠 Questionario mentale":
+        questionario_mentale()
+
     elif pagina == "📓 Diario personale":
-        st.title("📓 Diario personale")
-        oggi = datetime.date.today().isoformat()
-
-        testo = st.text_area("Scrivi qui il tuo pensiero di oggi")
-        if 'nome' in st.session_state:
-            nome = st.session_state['nome']
-        if st.button("Salva nel diario"):
-            nuova_riga = [nome, oggi, testo]
-            diario_data.append_row(nuova_riga)
-            st.success("Salvato nel diario!")
-
-        st.markdown("---")
-        st.subheader("📖 I tuoi appunti passati")
-        diario_df = pd.DataFrame(diario_data.get_all_records())
-        diario_nome = diario_df[diario_df["nome"] == nome]
-       # st.write(diario_df.columns)  # Questo ti mostra i nomi delle colonne
-
-        for _, row in diario_nome.iterrows():
-            st.markdown(f"**{row['data']}**")
-            st.markdown(f"> {row['testo']}")
-            st.markdown("---")
-        
-        time.sleep(60)  # Pausa di 60 secondi
-    # -------------------- DASHBOARD --------------------
-    elif pagina == "📊 Dashboard (solo visualizzazione)":
-        st.title("📊 I tuoi stati mentali nel tempo")
-        df = pd.DataFrame(mental_data.get_all_records())
-        df = df[df["nome"] == nome]
-
-        if df.empty:
-            st.info("Non ci sono ancora dati. Compila il questionario!")
-        else:
-            df["data"] = pd.to_datetime(df["data"])
-            st.line_chart(df.set_index("data")[["motivazione", "ansia", "concentrazione", "autostima","stanchezza",	"stress",	"supporto",	"soddisfazione"]])
-
-
+        diario_personale()
 
     elif pagina == "🧘‍♀️ Esercizi Mentali & Risorse":
         st.title("🧘‍♀️ Esercizi Mentali & Risorse")
@@ -474,6 +427,31 @@ def main():
         elif esercizio == "Audio brevi (mindfulness)":
             audio_mindfulness()
 
+    elif pagina == "📊 Dashboard Allenatore":
+        st.title("📊 Dashboard Allenatore - Stato Mentale delle Giocatrici")
+
+        try:
+            with open("questionario_mentale.json", "r") as f:
+                dati = json.load(f)
+            df_stato_mentale = pd.DataFrame(dati)
+
+            # Mostra la tabella dei dati
+            st.subheader("📋 Risposte raccolte")
+            st.dataframe(df_stato_mentale)
+
+            # Grafici delle medie per ogni parametro mentale
+            st.subheader("📊 Medie per parametro psicologico")
+
+            for colonna in ["motivazione", "ansia", "concentrazione", "autostima", "stanchezza", "stress", "supporto", "soddisfazione"]:
+                media = df_stato_mentale.groupby("nome")[colonna].mean().sort_values(ascending=False)
+                st.write(f"**{colonna.capitalize()} media**")
+                st.bar_chart(media)
+
+        except FileNotFoundError:
+            st.warning("⚠️ Nessun dato disponibile. Le giocatrici devono prima compilare il questionario.")
+        except Exception as e:
+            st.error(f"❌ Errore durante la lettura dei dati: {e}")
+            
 # Aggiungi la chiamata alla funzione principale
 if __name__ == "__main__":
     main()
