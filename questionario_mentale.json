@@ -22,5 +22,17 @@
         "stress": 2,
         "supporto": 5,
         "soddisfazione": 5
+    },
+    {
+        "nome": "Cla",
+        "data": "2025-04-11",
+        "motivazione": 3,
+        "ansia": 2,
+        "concentrazione": 4,
+        "autostima": 5,
+        "stanchezza": 3,
+        "stress": 2,
+        "supporto": 3,
+        "soddisfazione": 4
     }
 ]
