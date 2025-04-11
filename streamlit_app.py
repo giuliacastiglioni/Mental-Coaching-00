@@ -117,6 +117,7 @@ def registra_password(nome, ruolo, password):
 
 # Funzione di login
 def login():
+    st.title("Login - Mental Coach per Calcio a 7 Femminile")
     # Leggi i dati di login precedenti dal file
     login_data = leggi_login()
 
