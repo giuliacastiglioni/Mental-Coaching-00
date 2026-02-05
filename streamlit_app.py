@@ -735,13 +735,13 @@ def main():
     if pagina == "🏠 Home":
         home()
 
-    if pagina == "⚡ Check-in pre allenamento":
+    if pagina == "Check-in pre allenamento":
         checkin_pre()
 
-    elif pagina == "🏁 Check-out post allenamento":
+    elif pagina == "Check-out post allenamento":
         checkout_post()
 
-    elif pagina == "📈 Il mio andamento":
+    elif pagina == "Il mio andamento":
         andamento_atleta()
 
     elif pagina == "🧠 Questionario mentale":
