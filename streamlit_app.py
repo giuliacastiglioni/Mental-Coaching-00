@@ -190,17 +190,34 @@ def navigazione():
         
         # Menu principale in sidebar
         menu_principale = st.sidebar.radio("Seleziona una sezione:", 
-                                        ["🏠 Home", "⚡ Allenamento", "🧘‍♀️ Esercizi Mentali & Risorse", "🧠 Questionario mentale", "📓 Diario personale", "📝 Diario delle emozioni"])
-        
+                                            ["🏠 Home", "⚡ Allenamento", "🧘‍♀️ Esercizi Mentali & Risorse", 
+                                            "🧠 Questionario mentale", "📓 Diario personale", "📝 Diario delle emozioni"])
+
         if menu_principale == "⚡ Allenamento":
-            st.sidebar.markdown("Seleziona un'azione:")
-            col1, col2, col3 = st.sidebar.columns(3)
+            st.title("⚡ Allenamento")
+            st.markdown("Seleziona un'opzione per gestire il tuo allenamento:")
+
+            # Inizializza lo stato della pagina allenamento
+            if 'allenamento_page' not in st.session_state:
+                st.session_state['allenamento_page'] = None
+
+            # Pulsanti nella pagina centrale
+            col1, col2, col3 = st.columns(3)
             if col1.button("Check-in pre allenamento"):
-                pagina = "checkin"
+                st.session_state['allenamento_page'] = "checkin"
             if col2.button("Check-out post allenamento"):
-                pagina = "checkout"
+                st.session_state['allenamento_page'] = "checkout"
             if col3.button("Il mio andamento"):
-                pagina = "andamento"
+                st.session_state['allenamento_page'] = "andamento"
+
+            # Mostra la sezione selezionata
+            if st.session_state['allenamento_page'] == "checkin":
+                checkin_pre()
+            elif st.session_state['allenamento_page'] == "checkout":
+                checkout_post()
+            elif st.session_state['allenamento_page'] == "andamento":
+                andamento_atleta()
+
         else:
             # Selezione diretta per altre sezioni
             pagina = menu_principale
@@ -560,10 +577,10 @@ def audio_mindfulness():
 
     # Lista di audio (aggiungi tutti gli URL che vuoi)
     audio_list = [
-        {"titolo": "Believe", "url": "/workspaces/Mental-Coaching-00/Believe - Ted Lasso _ Powerful Motivational Speech [ZPGBceVfV60].mp3"},
+        {"titolo": "Believe - Ted Lasso", "url": "/workspaces/Mental-Coaching-00/Believe - Ted Lasso _ Powerful Motivational Speech [ZPGBceVfV60].mp3"},
         {"titolo": "Kobe Bryant's Greatest Speech", "url": "/workspaces/Mental-Coaching-00/Kobe Bryant's Greatest Speech _ BEST Motivation Ever [dTRBnHtHehQ].mp3"},
-        {"titolo": "Be Curious Not Judgemental", "url": "/workspaces/Mental-Coaching-00/Ted Lasso Darts Scene - Be Curious Not Judgemental [DWLoasvaFb8].mp3"},
-        {"titolo": "You'll never walk alone ", "url": "/workspaces/Mental-Coaching-00/Ted Lasso, You'll never walk alone (ending of S01) [HA3HWP1OcL4].mp3"}    
+        {"titolo": "Be Curious Not Judgemental - Ted Lasso", "url": "/workspaces/Mental-Coaching-00/Ted Lasso Darts Scene - Be Curious Not Judgemental [DWLoasvaFb8].mp3"},
+        {"titolo": "You'll never walk alone - Ted Lasso", "url": "/workspaces/Mental-Coaching-00/Ted Lasso, You'll never walk alone (ending of S01) [HA3HWP1OcL4].mp3"}    
     ]
 
     for audio in audio_list:
