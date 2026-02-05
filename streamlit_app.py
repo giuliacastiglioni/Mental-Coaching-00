@@ -702,10 +702,10 @@ def main():
     if pagina == "🏠 Home":
         home()
 
-    if pagina == "⚡ Check-in":
+    if pagina == "⚡ Check-in pre allenamento":
         checkin_pre()
 
-    elif pagina == "🏁 Check-out":
+    elif pagina == "🏁 Check-out post allenamento":
         checkout_post()
 
     elif pagina == "📈 Il mio andamento":
