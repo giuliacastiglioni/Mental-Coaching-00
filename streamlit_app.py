@@ -132,7 +132,7 @@ def login():
     # ---- IMMAGINE LOGIN ----
     st.image(
         "https://m.media-amazon.com/images/I/61J70VRI6mL._AC_SX679_.jpg", 
-        width=True
+        width="stretch"
     )
     # ---------------- LOGIN ----------------
     with tab1:
@@ -253,13 +253,13 @@ def home():
     if 'ruolo' in st.session_state:
         if st.session_state['ruolo'] == 'Giocatrice':
             st.markdown(f"Benvenuta {st.session_state.get('nome','')}! Pronta a migliorare il tuo benessere mentale nel calcio?")
-            st.image("https://i.pinimg.com/originals/ea/c0/96/eac0962e0bd8f573859a6a515ff9b0eb.png", width=True)
+            st.image("https://i.pinimg.com/originals/ea/c0/96/eac0962e0bd8f573859a6a515ff9b0eb.png", width="stretch")
         elif st.session_state['ruolo'] == 'Allenatore':
             st.markdown(f"Benvenuta {st.session_state.get('nome','')}! Qui puoi monitorare la tua squadra e supportare le giocatrici.")
-            st.image("https://www.magicalquote.com/wp-content/uploads/2021/06/For-me-success-is-not-about-the-wins-and-losses.-Its-about-helping-these-young-fellas-be-the-best-versions-of-themselves-on-and-off-the-field.jpg", width=True)
+            st.image("https://www.magicalquote.com/wp-content/uploads/2021/06/For-me-success-is-not-about-the-wins-and-losses.-Its-about-helping-these-young-fellas-be-the-best-versions-of-themselves-on-and-off-the-field.jpg", width="stretch")
     else:
         st.markdown("Benvenuto nella tua area personale per migliorare il tuo benessere mentale nel calcio!")
-        st.image("https://th.bing.com/th/id/OIP.Sz-ErltHiavXNHUAne6W_QHaE8?pid=ImgDet&w=184&h=122&c=7&dpr=1,3", width=True)
+        st.image("https://th.bing.com/th/id/OIP.Sz-ErltHiavXNHUAne6W_QHaE8?pid=ImgDet&w=184&h=122&c=7&dpr=1,3", width="stretch")
 
     st.markdown("Usa il menu a sinistra per iniziare ✨")
 
