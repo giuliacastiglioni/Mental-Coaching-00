@@ -132,7 +132,7 @@ def login():
     # ---- IMMAGINE LOGIN ----
     st.image(
         "https://m.media-amazon.com/images/I/61J70VRI6mL._AC_SX679_.jpg", 
-        use_container_width=True
+        width=True
     )
     # ---------------- LOGIN ----------------
     with tab1:
@@ -253,13 +253,13 @@ def home():
     if 'ruolo' in st.session_state:
         if st.session_state['ruolo'] == 'Giocatrice':
             st.markdown(f"Benvenuta {st.session_state.get('nome','')}! Pronta a migliorare il tuo benessere mentale nel calcio?")
-            st.image("https://i.pinimg.com/originals/ea/c0/96/eac0962e0bd8f573859a6a515ff9b0eb.png", use_container_width=True)
+            st.image("https://i.pinimg.com/originals/ea/c0/96/eac0962e0bd8f573859a6a515ff9b0eb.png", width=True)
         elif st.session_state['ruolo'] == 'Allenatore':
             st.markdown(f"Benvenuta {st.session_state.get('nome','')}! Qui puoi monitorare la tua squadra e supportare le giocatrici.")
-            st.image("https://www.magicalquote.com/wp-content/uploads/2021/06/For-me-success-is-not-about-the-wins-and-losses.-Its-about-helping-these-young-fellas-be-the-best-versions-of-themselves-on-and-off-the-field.jpg", use_container_width=True)
+            st.image("https://www.magicalquote.com/wp-content/uploads/2021/06/For-me-success-is-not-about-the-wins-and-losses.-Its-about-helping-these-young-fellas-be-the-best-versions-of-themselves-on-and-off-the-field.jpg", width=True)
     else:
         st.markdown("Benvenuto nella tua area personale per migliorare il tuo benessere mentale nel calcio!")
-        st.image("https://th.bing.com/th/id/OIP.Sz-ErltHiavXNHUAne6W_QHaE8?pid=ImgDet&w=184&h=122&c=7&dpr=1,3", use_container_width=True)
+        st.image("https://th.bing.com/th/id/OIP.Sz-ErltHiavXNHUAne6W_QHaE8?pid=ImgDet&w=184&h=122&c=7&dpr=1,3", width=True)
 
     st.markdown("Usa il menu a sinistra per iniziare ✨")
 
@@ -590,17 +590,21 @@ def frasi_motivazionali():
 def audio_mindfulness():
     st.subheader("Audio Brevi per Mindfulness e Motivazione")
 
-    # Lista di audio (aggiungi tutti gli URL che vuoi)
     audio_list = [
-        {"titolo": "Believe - Ted Lasso", "url": "/workspaces/Mental-Coaching-00/Believe - Ted Lasso _ Powerful Motivational Speech [ZPGBceVfV60].mp3"},
-        {"titolo": "Kobe Bryant's Greatest Speech", "url": "/workspaces/Mental-Coaching-00/Kobe Bryant's Greatest Speech _ BEST Motivation Ever [dTRBnHtHehQ].mp3"},
-        {"titolo": "Be Curious Not Judgemental - Ted Lasso", "url": "/workspaces/Mental-Coaching-00/Ted Lasso Darts Scene - Be Curious Not Judgemental [DWLoasvaFb8].mp3"},
-        {"titolo": "You'll never walk alone - Ted Lasso", "url": "/workspaces/Mental-Coaching-00/Ted Lasso, You'll never walk alone (ending of S01) [HA3HWP1OcL4].mp3"}    
+        {"titolo": "Believe - Ted Lasso", "file": "Audio/Believe.mp3"},
+        {"titolo": "Kobe Bryant's Greatest Speech", "file": "Audio/Kobe.mp3"},
+        {"titolo": "Be Curious Not Judgemental - Ted Lasso", "file": "Audio/beCurious.mp3"},
+        {"titolo": "You'll never walk alone - Ted Lasso", "file": "Audio/Ted.mp3"}    
     ]
 
     for audio in audio_list:
         st.markdown(f"**{audio['titolo']}**")
-        st.audio(audio["url"])
+        try:
+            with open(audio["file"], "rb") as f:
+                st.audio(f.read(), format="audio/mp3")
+        except FileNotFoundError:
+            st.error(f"File non trovato: {audio['file']}")
+
 
 
 # Funzione per ripulire il file JSON
