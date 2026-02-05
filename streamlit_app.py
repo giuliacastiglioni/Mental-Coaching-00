@@ -549,7 +549,6 @@ def frasi_motivazionali():
         "Non puoi battere il duro lavoro. - Zinedine Zidane",
         "La vittoria è solo un altro passo. La cosa importante è continuare a migliorarsi. - Michael Jordan",
         "Il più grande errore che puoi fare nella vita è avere paura di fare errori. - Elbert Hubbard",
-        "Il successo appartiene a coloro che sono abbastanza audaci da credere in sé stessi. - Coco Chanel",
         "Non misurare mai il tuo progresso con quello degli altri. Abbi fede nel tuo percorso. - Unknown",
         "La forza non arriva dalle capacità fisiche. Arriva dalla volontà indomabile. - Mahatma Gandhi",
         "Non importa quanto lento tu vada, l'importante è non fermarti. - Confucio",
@@ -566,7 +565,7 @@ def frasi_motivazionali():
         "L'unico modo per fare un ottimo lavoro è amare quello che fai. - Steve Jobs",
         "Non aspettare il momento perfetto. Crea il momento perfetto. - Unknown",
         "Se non sei disposto a rischiare, non sarai mai in grado di ottenere ciò che desideri. - Unknown",
-        "In sostanza, o sei uno che si assume rischi o non lo sei, e se non corri rischi, non vincerai mai in grande. - Geno Auriemma"
+        "In sostanza, o sei uno che si assume rischi o non lo sei, e se non corri rischi, non vincerai mai in grande. - Geno Auriemma",
         "Ci saranno giorni buoni e giorni cattivi, ma il mio amore assoluto per il gioco e la forza che viene da Dio mi riporteranno dove devo essere. - Paige Bueckers"
     ]
     st.subheader("Frase motivazionale del giorno")
