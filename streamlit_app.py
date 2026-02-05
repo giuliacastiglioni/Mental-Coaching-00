@@ -515,7 +515,7 @@ def diario_emozioni():
         if st.button('Salva Emozioni'):
             if 'nome' in st.session_state:
                 nome = st.session_state['nome']
-                oggi = datetime.date.today().isoformat()
+                oggi = date.today().isoformat()
 
                 # Crea un oggetto per le emozioni selezionate e le riflessioni
                 emozioni_data = {
