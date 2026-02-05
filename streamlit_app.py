@@ -188,23 +188,23 @@ def navigazione():
     if st.session_state['ruolo'] == 'Giocatrice':
         st.sidebar.title(f"👋 Benvenuta {st.session_state['nome']}!")
         
-        # Menu principale per le giocatrici
-        menu_principale = st.sidebar.radio("Scegli sezione", 
-                                           ["🏠 Home", 
-                                            "⚡ Allenamento",
-                                            "🧠 Questionario mentale", 
-                                            "📓 Diario personale",
-                                            "📝 Diario delle emozioni", 
-                                            "🧘‍♀️ Esercizi Mentali & Risorse"])
+        # Menu principale in sidebar
+        menu_principale = st.sidebar.radio("Seleziona una sezione:", 
+                                        ["🏠 Home", "⚡ Allenamento", "🧘‍♀️ Esercizi Mentali & Risorse", "🧠 Questionario mentale", "📓 Diario personale", "📝 Diario delle emozioni"])
         
-        # Sottosezione per Allenamento
         if menu_principale == "⚡ Allenamento":
-            pagina = st.sidebar.selectbox("Seleziona attività di allenamento", 
-                                          ["Check-in pre allenamento", 
-                                           "Check-out post allenamento",
-                                           "Il mio andamento"])
+            st.sidebar.markdown("Seleziona un'azione:")
+            col1, col2, col3 = st.sidebar.columns(3)
+            if col1.button("Check-in pre allenamento"):
+                pagina = "checkin"
+            if col2.button("Check-out post allenamento"):
+                pagina = "checkout"
+            if col3.button("Il mio andamento"):
+                pagina = "andamento"
         else:
+            # Selezione diretta per altre sezioni
             pagina = menu_principale
+
 
     elif st.session_state['ruolo'] == 'Allenatore':
         st.sidebar.title(f"👋 Benvenuto {st.session_state['nome']} - Allenatore!")
@@ -569,7 +569,7 @@ def audio_mindfulness():
     for audio in audio_list:
         st.markdown(f"**{audio['titolo']}**")
         st.audio(audio["url"])
-        st.button(f"Inizia {audio['titolo']}")
+
 
 # Funzione per ripulire il file JSON
 def pulire_file_json():
@@ -735,13 +735,11 @@ def main():
     if pagina == "🏠 Home":
         home()
 
-    if pagina == "Check-in pre allenamento":
+    elif pagina == "checkin":
         checkin_pre()
-
-    elif pagina == "Check-out post allenamento":
+    elif pagina == "checkout":
         checkout_post()
-
-    elif pagina == "Il mio andamento":
+    elif pagina == "andamento":
         andamento_atleta()
 
     elif pagina == "🧠 Questionario mentale":
@@ -755,22 +753,20 @@ def main():
 
     elif pagina == "🧘‍♀️ Esercizi Mentali & Risorse":
         st.title("🧘‍♀️ Esercizi Mentali & Risorse")
-        
-        esercizio = st.radio("Scegli un esercizio mentale da fare:", 
-                                ["Respirazione", 
-                                "Visualizzazione positiva pre-partita", 
-                                "Frasi motivazionali", 
-                                "Audio brevi (mindfulness)"])
-        
-        if esercizio == "Respirazione":
-            esercizio_respirazione()
-        elif esercizio == "Visualizzazione positiva pre-partita":
-            visualizzazione_pre_partita()
+        st.markdown("Seleziona un esercizio mentale da fare:")
 
-        elif esercizio == "Frasi motivazionali":
+        # Creiamo 4 colonne per i pulsanti
+        col1, col2, col3, col4 = st.columns(4)
+
+        if col1.button("Respirazione"):
+            esercizio_respirazione()
+        if col2.button("Visualizzazione pre-partita"):
+            visualizzazione_pre_partita()
+        if col3.button("Frasi motivazionali"):
             frasi_motivazionali()
-        elif esercizio == "Audio brevi (mindfulness)":
+        if col4.button("Audio motivazionali"):
             audio_mindfulness()
+
 
     elif pagina == "📊 Dashboard Allenatore":
         st.title("📊 Dashboard Allenatore")
