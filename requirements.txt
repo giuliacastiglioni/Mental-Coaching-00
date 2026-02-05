@@ -9,3 +9,4 @@ airtable
 pyairtable
 bcrypt
 numpy
+plotly
