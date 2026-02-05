@@ -1,5 +1,5 @@
 import streamlit as st
-import datetime
+from datetime import datetime
 import pandas as pd
 import random
 import json
