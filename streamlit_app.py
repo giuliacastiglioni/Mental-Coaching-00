@@ -565,7 +565,7 @@ def questionario_mentale():
     oggi = datetime.date.today().isoformat()
 
     # Domande originali
-    motivazione = st.slider("Motivazione (quanto ti senti ispirata per allenarti?)", 1, 5, 3, step=1)
+    motivazione = st.slider("Motivazione", 1, 5, 3, step=1)
     ansia = st.slider("Ansia (quanto ti senti preoccupata o tesa?)", 1, 5, 3, step=1)
     concentrazione = st.slider("Concentrazione (quanto riesci a mantenere l'attenzione?)", 1, 5, 3, step=1)
     autostima = st.slider("Autostima (quanto credi in te stessa?)", 1, 5, 3, step=1)
