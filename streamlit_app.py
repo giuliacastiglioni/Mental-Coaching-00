@@ -242,8 +242,19 @@ def navigazione():
 
 def home():
     st.title("⚽ Mental Coach App - Vittoria Junior")
-    st.markdown("Benvenuta nella tua area personale per migliorare il tuo benessere mentale nel calcio!")
-    st.image("https://th.bing.com/th/id/OIP.Sz-ErltHiavXNHUAne6W_QHaE8?pid=ImgDet&w=184&h=122&c=7&dpr=1,3", use_container_width=True)
+
+    # Messaggio di benvenuto personalizzato
+    if 'ruolo' in st.session_state:
+        if st.session_state['ruolo'] == 'Giocatrice':
+            st.markdown(f"Benvenuta {st.session_state.get('nome','')}! Pronta a migliorare il tuo benessere mentale nel calcio?")
+            st.image("https://th.bing.com/th/id/OIP.Sz-ErltHiavXNHUAne6W_QHaE8?pid=ImgDet&w=184&h=122&c=7&dpr=1,3", use_container_width=True)
+        elif st.session_state['ruolo'] == 'Allenatore':
+            st.markdown(f"Benvenuta {st.session_state.get('nome','')}! Qui puoi monitorare la tua squadra e supportare le giocatrici.")
+            st.image("https://www.magicalquote.com/wp-content/uploads/2021/06/For-me-success-is-not-about-the-wins-and-losses.-Its-about-helping-these-young-fellas-be-the-best-versions-of-themselves-on-and-off-the-field.jpg", use_container_width=True)
+    else:
+        st.markdown("Benvenuto nella tua area personale per migliorare il tuo benessere mentale nel calcio!")
+        st.image("https://th.bing.com/th/id/OIP.Sz-ErltHiavXNHUAne6W_QHaE8?pid=ImgDet&w=184&h=122&c=7&dpr=1,3", use_container_width=True)
+
     st.markdown("Usa il menu a sinistra per iniziare ✨")
 
 def checkin_pre():
@@ -531,18 +542,18 @@ def frasi_motivazionali():
     # Frasi motivazionali estratte da calciatori famosi
     frasi = [
         "Be curious, not judgmental. (Sii curioso, non giudicante.)",
-        "I believe in hope. I believe in believe. (Io credo nella speranza. Io credo nel credere.)",
-        "Taking on a challenge is a lot like riding a horse, isn’t it? If you’re comfortable while you’re doing it, you’re probably doing it wrong. (Affrontare una sfida è un po' come andare a cavallo, no? Se ti senti a tuo agio mentre lo fai, probabilmente lo stai facendo male.)",
-        "Doing the right thing is never the wrong thing. (Fare la cosa giusta non è mai sbagliato.)",
-        "Believe in yourself and be the best version of you. (Credi in te stesso e sii la migliore versione di te.)",
-        "I think that you might be so sure that you’re one in a million, that sometimes you forget that out there, you’re just one of eleven. (Penso che a volte sei così sicuro di essere uno su un milione, che ti dimentichi che là fuori sei solo uno di undici.)",
-        "Success is not about wins and losses, it’s about helping these young fellas be the best versions of themselves. (Il successo non riguarda vittorie e sconfitte, ma aiutare questi giovani a essere la migliore versione di se stessi.)",
-        "It’s the lack of hope that kills you. (È la mancanza di speranza che ti uccide.)",
-        "If the plan doesn’t work, change the plan, but never the goal. (Se il piano non funziona, cambia il piano, ma mai l’obiettivo.)",
-        "Smells like potential. (Sa di potenziale.)",
-        "You know what the happiest animal on Earth is? It’s a goldfish. You know why? It’s got a ten-second memory. Be a goldfish. (Sai qual è l'animale più felice sulla Terra? È un pesce rosso. Sai perché? Ha una memoria di dieci secondi. Sii un pesce rosso.)",
-        "I promise you, there is something worse out there than being sad, and that’s being alone and being sad. (Vi assicuro, c’è qualcosa di peggio che essere tristi, ed è essere soli e tristi.)",
-        "Just listen to your gut, and on the way down to your gut, check in with your heart. Between those two things, they’ll let you know what’s what. (Ascolta semplicemente il tuo istinto, e lungo la strada verso il tuo istinto, consulta anche il tuo cuore. Tra queste due cose, ti diranno cosa fare.)",
+        "I believe in hope. I believe in believe. (Io credo nella speranza. Io credo nel credere.) - Ted Lasso",
+        "Taking on a challenge is a lot like riding a horse, isn’t it? If you’re comfortable while you’re doing it, you’re probably doing it wrong. (Affrontare una sfida è un po' come andare a cavallo, no? Se ti senti a tuo agio mentre lo fai, probabilmente lo stai facendo male.) - Ted Lasso",
+        "Doing the right thing is never the wrong thing. (Fare la cosa giusta non è mai sbagliato.) - Ted Lasso",
+        "Believe in yourself and be the best version of you. (Credi in te stesso e sii la migliore versione di te.) - Ted Lasso",
+        "I think that you might be so sure that you’re one in a million, that sometimes you forget that out there, you’re just one of eleven. (Penso che a volte sei così sicuro di essere uno su un milione, che ti dimentichi che là fuori sei solo uno di undici.) - Ted Lasso",
+        "Success is not about wins and losses, it’s about helping these young fellas be the best versions of themselves. (Il successo non riguarda vittorie e sconfitte, ma aiutare questi giovani a essere la migliore versione di se stessi.) - Ted Lasso",
+        "It’s the lack of hope that kills you. (È la mancanza di speranza che ti uccide.) - Ted Lasso",
+        "If the plan doesn’t work, change the plan, but never the goal. (Se il piano non funziona, cambia il piano, ma mai l’obiettivo.) - Ted Lasso",
+        "Smells like potential. (Sa di potenziale.) - Ted Lasso",
+        "You know what the happiest animal on Earth is? It’s a goldfish. You know why? It’s got a ten-second memory. Be a goldfish. (Sai qual è l'animale più felice sulla Terra? È un pesce rosso. Sai perché? Ha una memoria di dieci secondi. Sii un pesce rosso.) - Ted Lasso",
+        "I promise you, there is something worse out there than being sad, and that’s being alone and being sad. (Vi assicuro, c’è qualcosa di peggio che essere tristi, ed è essere soli e tristi.) - Ted Lasso",
+        "Just listen to your gut, and on the way down to your gut, check in with your heart. Between those two things, they’ll let you know what’s what. (Ascolta semplicemente il tuo istinto, e lungo la strada verso il tuo istinto, consulta anche il tuo cuore. Tra queste due cose, ti diranno cosa fare.) - Ted Lasso",
         "Devi lottare per raggiungere il tuo sogno. Devi sacrificarti e lavorare sodo per farlo. - Lionel Messi",
         "Il successo non è un caso. È il risultato di perseveranza, determinazione e duro lavoro. - Cristiano Ronaldo",
         "Il calcio è una questione di orgoglio e spirito di squadra, e il duro lavoro batte il talento quando il talento non lavora duro. - Andrea Pirlo",
@@ -555,7 +566,6 @@ def frasi_motivazionali():
         "Ogni grande sogno inizia con un sognatore. - Harriet Tubman",
         "La disciplina è il ponte tra gli obiettivi e i risultati. - Jim Rohn",
         "Il vero fallimento non è cadere, ma rimanere a terra. - Mary Pickford",
-        "Quando tutto sembra andare male, ricorda: il tramonto è solo il preludio all'alba. - Unknown",
         "Se vuoi qualcosa che non hai mai avuto, devi fare qualcosa che non hai mai fatto. - Thomas Jefferson",
         "Le persone che riescono sono quelle che non mollano mai. - Winston Churchill",
         "Non limitarti. Il mondo è tuo. - Unknown",
