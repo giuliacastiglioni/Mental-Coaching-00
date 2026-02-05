@@ -247,7 +247,7 @@ def home():
     if 'ruolo' in st.session_state:
         if st.session_state['ruolo'] == 'Giocatrice':
             st.markdown(f"Benvenuta {st.session_state.get('nome','')}! Pronta a migliorare il tuo benessere mentale nel calcio?")
-            st.image("https://th.bing.com/th/id/OIP.Sz-ErltHiavXNHUAne6W_QHaE8?pid=ImgDet&w=184&h=122&c=7&dpr=1,3", use_container_width=True)
+            st.image("https://i.pinimg.com/originals/ea/c0/96/eac0962e0bd8f573859a6a515ff9b0eb.png", use_container_width=True)
         elif st.session_state['ruolo'] == 'Allenatore':
             st.markdown(f"Benvenuta {st.session_state.get('nome','')}! Qui puoi monitorare la tua squadra e supportare le giocatrici.")
             st.image("https://www.magicalquote.com/wp-content/uploads/2021/06/For-me-success-is-not-about-the-wins-and-losses.-Its-about-helping-these-young-fellas-be-the-best-versions-of-themselves-on-and-off-the-field.jpg", use_container_width=True)
