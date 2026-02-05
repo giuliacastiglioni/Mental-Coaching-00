@@ -699,11 +699,11 @@ def questionario_mentale():
 
             try:
                 # Percorso per il salvataggio su file JSON
-                if not os.path.exists("questionario_mentale.json"):
-                    with open("questionario_mentale.json", "w") as f:
+                if not os.path.exists("questionario.json"):
+                    with open("questionario.json", "w") as f:
                         json.dump([], f)
 
-                with open("questionario_mentale.json", "r+") as f:
+                with open("questionario.json", "r+") as f:
                     data = json.load(f)
                     data.append(risposta)
                     f.seek(0)
