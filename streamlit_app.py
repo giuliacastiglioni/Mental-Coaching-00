@@ -583,7 +583,7 @@ def frasi_motivazionali():
         "Believe in yourself and be the best version of you. (Credi in te stesso e sii la migliore versione di te.) - Ted Lasso",
         "I think that you might be so sure that you’re one in a million, that sometimes you forget that out there, you’re just one of eleven. (Penso che a volte sei così sicuro di essere uno su un milione, che ti dimentichi che là fuori sei solo uno di undici.) - Ted Lasso",
         "Success is not about wins and losses, it’s about helping these young fellas be the best versions of themselves. (Il successo non riguarda vittorie e sconfitte, ma aiutare questi giovani a essere la migliore versione di se stessi.) - Ted Lasso",
-        "It’s the lack of hope that kills you. (È la mancanza di speranza che ti uccide.) - Ted Lasso",
+        "It’s the lack of hope that comes and gets you. (È la mancanza di speranza che arriva e ti prende.) - Ted Lasso",
         "If the plan doesn’t work, change the plan, but never the goal. (Se il piano non funziona, cambia il piano, ma mai l’obiettivo.) - Ted Lasso",
         "Smells like potential. (Sa di potenziale.) - Ted Lasso",
         "You know what the happiest animal on Earth is? It’s a goldfish. You know why? It’s got a ten-second memory. Be a goldfish. (Sai qual è l'animale più felice sulla Terra? È un pesce rosso. Sai perché? Ha una memoria di dieci secondi. Sii un pesce rosso.) - Ted Lasso",
