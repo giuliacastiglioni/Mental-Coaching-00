@@ -607,7 +607,7 @@ def frasi_motivazionali():
     st.write(random.choice(frasi))
 
 def audio_mindfulness():
-    st.subheader("Audio Brevi per Mindfulness e Motivazione")
+    st.subheader("Audio per Mindfulness e Motivazione")
 
     audio_list = [
         {"titolo": "Believe - Ted Lasso", "file": "Audio/Believe.mp3"},
