@@ -126,8 +126,14 @@ style_buttons()
 def login():
     st.title("🔐 Login - Mental Coach")
 
-    tab1, tab2 = st.tabs(["Accedi", "Registrati"])
+    st.markdown("Benvenuta! Inserisci le tue credenziali per accedere all'app.")
 
+    tab1, tab2 = st.tabs(["Accedi", "Registrati"])
+    # ---- IMMAGINE LOGIN ----
+    st.image(
+        "https://m.media-amazon.com/images/I/61J70VRI6mL._AC_SX679_.jpg", 
+        use_container_width=True
+    )
     # ---------------- LOGIN ----------------
     with tab1:
         nome = st.text_input("Nome")
