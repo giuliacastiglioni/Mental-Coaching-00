@@ -16,12 +16,12 @@ from auth import register_user, check_login
 # -------------------- PERSONALIZZAZIONE DELLO SFONDO --------------------
 # -------------------- CARICAMENTO E CREAZIONE DEI FILE JSON --------------------
 def carica_dati_json(file_path):
-    """Carica i dati da un file JSON, creando un file vuoto se non esiste"""
     if os.path.exists(file_path):
         with open(file_path, 'r') as f:
             return json.load(f)
     else:
-        return {}
+        return []
+
 
 def salva_dati_json(file_path, data):
     """Salva i dati nel file JSON"""
@@ -32,10 +32,14 @@ def salva_dati_json(file_path, data):
 file_questionario = "questionario.json"
 file_diario = "diario.json"
 file_emozioni= "emozioni.json"
+file_checkin = "checkin_pre.json"
+file_checkout = "checkout_post.json"
 
 # Carica i dati esistenti dai file JSON
 dati_questionario = carica_dati_json(file_questionario)
 dati_diario = carica_dati_json(file_diario)
+dati_checkin = carica_dati_json(file_checkin)
+dati_checkout = carica_dati_json(file_checkout)
 
 # Funzione per aggiungere uno sfondo azzurro chiaro
 def set_bg_color():
@@ -211,6 +215,99 @@ def home():
     st.markdown("Benvenuta nella tua area personale per migliorare il tuo benessere mentale nel calcio!")
     st.image("https://th.bing.com/th/id/OIP.Sz-ErltHiavXNHUAne6W_QHaE8?pid=ImgDet&w=184&h=122&c=7&dpr=1,3", use_container_width=True)
     st.markdown("Usa il menu a sinistra per iniziare ✨")
+
+def checkin_pre():
+    st.title("⚡ Check-in pre allenamento")
+
+    nome = st.session_state.get("nome")
+
+    energia = st.slider("Quanta energia hai?",1,5,3)
+    umore = st.slider("Umore",1,5,3)
+    stress = st.slider("Stress",1,5,3)
+    focus = st.slider("Concentrazione",1,5,3)
+
+    if st.button("Invia check-in"):
+        nuovo = {
+            "nome": nome,
+            "data": datetime.now().isoformat(),
+            "energia": energia,
+            "umore": umore,
+            "stress": stress,
+            "focus": focus
+        }
+
+        dati = carica_dati_json(file_checkin)
+        dati.append(nuovo)
+        salva_dati_json(file_checkin, dati)
+
+        st.success("Check-in salvato!")
+
+        # feedback immediato
+        indice = stress - energia
+
+        if indice > 2:
+            st.error("🔴 Attenzione: arrivi molto stanca/stressata")
+            st.write("Parlane con l'allenatore prima di iniziare")
+        elif indice > 0:
+            st.warning("🟠 Giornata media")
+        else:
+            st.success("🟢 Pronta per allenarti!")
+
+def checkout_post():
+    st.title("🏁 Check-out post allenamento")
+
+    nome = st.session_state.get("nome")
+
+    fatica = st.slider("Quanto sei stanca?",1,5,3)
+    soddisfazione = st.slider("Soddisfazione allenamento",1,5,3)
+    prestazione = st.slider("Come ti sei sentita in campo?",1,5,3)
+    emozione = st.text_input("Una parola sull'allenamento")
+
+    if st.button("Invia check-out"):
+        nuovo = {
+            "nome": nome,
+            "data": datetime.now().isoformat(),
+            "fatica": fatica,
+            "soddisfazione": soddisfazione,
+            "prestazione": prestazione,
+            "emozione": emozione
+        }
+
+        dati = carica_dati_json(file_checkout)
+        dati.append(nuovo)
+        salva_dati_json(file_checkout, dati)
+
+        st.success("Check-out salvato!")
+
+        if fatica > 4 and soddisfazione < 3:
+            st.warning("Allenamento pesante oggi. Recupera bene 💧")
+        elif soddisfazione > 4:
+            st.success("Ottimo allenamento! 🔥")
+
+def andamento_atleta():
+    st.title("📈 Il mio andamento")
+
+    nome = st.session_state.get("nome")
+
+    if not os.path.exists("checkin_pre.json"):
+        st.info("Nessun dato")
+        return
+
+    with open("checkin_pre.json") as f:
+        dati = json.load(f)
+
+    df = pd.DataFrame(dati)
+    df = df[df["nome"]==nome]
+
+    if df.empty:
+        st.info("Ancora nessun dato")
+        return
+
+    df["data"] = pd.to_datetime(df["data"])
+
+    import plotly.express as px
+    fig = px.line(df, x="data", y=["energia","umore","stress","focus"], markers=True)
+    st.plotly_chart(fig, use_container_width=True)
 
 # -------------------- Esercizi Mentali & Risorse --------------------
 
@@ -602,7 +699,16 @@ def main():
     if pagina == "🏠 Home":
         home()
 
-    if pagina == "🧠 Questionario mentale":
+    if pagina == "⚡ Check-in":
+        checkin_pre()
+
+    elif pagina == "🏁 Check-out":
+        checkout_post()
+
+    elif pagina == "📈 Il mio andamento":
+        andamento_atleta()
+
+    elif pagina == "🧠 Questionario mentale":
         questionario_mentale()
 
     elif pagina == "📓 Diario personale":
@@ -633,145 +739,164 @@ def main():
     elif pagina == "📊 Dashboard Allenatore":
         st.title("📊 Dashboard Allenatore")
 
-
-
         try:
+            # Carica dati questionario mentale
             with open("questionario_mentale.json", "r") as f:
                 dati = json.load(f)
-
             df = pd.DataFrame(dati)
 
             if df.empty:
                 st.warning("Nessun dato disponibile")
             else:
-
                 parametri = ["motivazione","ansia","concentrazione","autostima",
                             "stanchezza","stress","supporto","soddisfazione"]
 
-                # assicura numeri
+                # Assicura numeri
                 for col in parametri:
                     df[col] = pd.to_numeric(df[col], errors="coerce")
-
                 df["data"] = pd.to_datetime(df["data"])
 
-                # =====================================================
-                # 🧠 INDICE RISCHIO MENTALE
-                # =====================================================
-
-                df["indice_rischio"] = (
-                    df["ansia"]*0.3 +
-                    df["stress"]*0.3 +
-                    df["stanchezza"]*0.2 -
-                    df["motivazione"]*0.1 -
-                    df["autostima"]*0.1
+                # Crea le tab
+                tab_mentale, tab_allenamento, tab_carico, tab_alert = st.tabs(
+                    ["🧠 Mentale", "⚡ Allenamento", "📊 Carico", "🚨 Alert"]
                 )
 
-                st.subheader("🧠 Indice rischio mentale squadra")
+                # =====================================================
+                # 🧠 TAB MENTALE
+                # =====================================================
+                with tab_mentale:
+                    st.subheader("🧠 Indice rischio mentale squadra")
+                    df["indice_rischio"] = (
+                        df["ansia"]*0.3 +
+                        df["stress"]*0.3 +
+                        df["stanchezza"]*0.2 -
+                        df["motivazione"]*0.1 -
+                        df["autostima"]*0.1
+                    )
 
-                rischio_squadra = df["indice_rischio"].mean()
+                    rischio_squadra = df["indice_rischio"].mean()
+                    col1, col2, col3 = st.columns(3)
+                    col1.metric("Rischio medio squadra", round(rischio_squadra,2))
+                    col2.metric("Motivazione media", round(df["motivazione"].mean(),2))
+                    col3.metric("Stress medio", round(df["stress"].mean(),2))
 
-                col1,col2,col3 = st.columns(3)
+                    # Semaforo giocatrici
+                    ultimo = df.sort_values("data").groupby("nome").last().reset_index()
+                    def semaforo(v):
+                        if v > 3.5:
+                            return "🔴 Alto"
+                        elif v > 2.5:
+                            return "🟠 Medio"
+                        else:
+                            return "🟢 OK"
+                    ultimo["stato"] = ultimo["indice_rischio"].apply(semaforo)
+                    st.subheader("🚦 Stato giocatrici")
+                    st.dataframe(ultimo[["nome","indice_rischio","stato"]])
 
-                col1.metric("Rischio medio squadra", round(rischio_squadra,2))
-                col2.metric("Motivazione media", round(df["motivazione"].mean(),2))
-                col3.metric("Stress medio", round(df["stress"].mean(),2))
+                    # Classifica mentale
+                    st.subheader("🏆 Classifica mentale")
+                    classifica = df.groupby("nome")[parametri].mean()
+                    classifica["score"] = (
+                        classifica["motivazione"] +
+                        classifica["concentrazione"] +
+                        classifica["autostima"] +
+                        classifica["supporto"] -
+                        classifica["ansia"] -
+                        classifica["stress"] -
+                        classifica["stanchezza"]
+                    )
+                    classifica = classifica.sort_values("score", ascending=False)
+                    st.dataframe(classifica)
+                    fig = px.bar(classifica, y=classifica.index, x="score", orientation="h",
+                                title="Classifica mentale squadra")
+                    st.plotly_chart(fig, use_container_width=True)
+
+                    # Andamento parametro
+                    st.subheader("📈 Andamento nel tempo")
+                    parametro_sel = st.selectbox("Scegli parametro", parametri, key="grafico_param")
+                    fig = px.line(df, x="data", y=parametro_sel, color="nome", markers=True)
+                    st.plotly_chart(fig, use_container_width=True)
+
+                    # Radar atleta
+                    st.subheader("🧍 Scheda atleta")
+                    atleta = st.selectbox("Seleziona atleta", df["nome"].unique(), key="radar")
+                    df_atleta = df[df["nome"]==atleta]
+                    medie = df_atleta[parametri].mean()
+                    fig = go.Figure()
+                    fig.add_trace(go.Scatterpolar(r=medie.values, theta=parametri, fill='toself'))
+                    fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0,5])),
+                                    showlegend=False)
+                    st.plotly_chart(fig)
 
                 # =====================================================
-                # 🚦 SEMAFORO GIOCATRICI
+                # ⚡ TAB ALLENAMENTO
                 # =====================================================
+                with tab_allenamento:
+                    st.header("⚡ Check-in e post allenamento")
+                    
+                    # Check-in pre
+                    try:
+                        with open("checkin_pre.json","r") as f:
+                            df_check = pd.DataFrame(json.load(f))
+                        if not df_check.empty:
+                            df_check["data"] = pd.to_datetime(df_check["data"])
+                            oggi = df_check[df_check["data"].dt.date == datetime.now().date()]
+                            if not oggi.empty:
+                                col1, col2, col3 = st.columns(3)
+                                col1.metric("Energia media", round(oggi["energia"].mean(),2))
+                                col2.metric("Stress medio", round(oggi["stress"].mean(),2))
+                                col3.metric("Umore medio", round(oggi["umore"].mean(),2))
+                                st.subheader("Stato giocatrici oggi")
+                                fig = px.bar(oggi, x="nome", y="energia", color="stress", title="Energia vs Stress")
+                                st.plotly_chart(fig, use_container_width=True)
+                            else:
+                                st.info("Nessun check-in oggi")
+                    except:
+                        st.info("Nessun dato check-in disponibile")
 
-                st.subheader("🚦 Stato giocatrici")
+                    # Post allenamento
+                    try:
+                        with open("checkout_post.json","r") as f:
+                            df_out = pd.DataFrame(json.load(f))
+                        if not df_out.empty:
+                            df_out["data"] = pd.to_datetime(df_out["data"])
+                            oggi_out = df_out[df_out["data"].dt.date == datetime.now().date()]
+                            if not oggi_out.empty:
+                                col1, col2 = st.columns(2)
+                                col1.metric("Fatica media", round(oggi_out["fatica"].mean(),2))
+                                col2.metric("Soddisfazione media", round(oggi_out["soddisfazione"].mean(),2))
+                                fig = px.bar(oggi_out, x="nome", y="fatica", color="soddisfazione",
+                                            title="Fatica vs Soddisfazione")
+                                st.plotly_chart(fig, use_container_width=True)
+                    except:
+                        st.info("Nessun dato post allenamento")
 
-                ultimo = df.sort_values("data").groupby("nome").last().reset_index()
+                # =====================================================
+                # 📊 TAB CARICO
+                # =====================================================
+                with tab_carico:
+                    try:
+                        if not df.empty and 'df_check' in locals() and not df_check.empty:
+                            ultimo_check = df_check.sort_values("data").groupby("nome").last()
+                            ultimo_mentale = df.sort_values("data").groupby("nome").last()
+                            merged = ultimo_check.join(ultimo_mentale, lsuffix="_check", rsuffix="_ment")
+                            merged["carico_totale"] = merged["stress"] + merged["stanchezza"] + merged["ansia"]
+                            fig = px.bar(merged, x=merged.index, y="carico_totale", title="Carico totale per atleta")
+                            st.plotly_chart(fig, use_container_width=True)
+                    except:
+                        st.info("Nessun dato carico disponibile")
 
-                def semaforo(v):
-                    if v > 3.5:
-                        return "🔴 Alto"
-                    elif v > 2.5:
-                        return "🟠 Medio"
+                # =====================================================
+                # 🚨 TAB ALERT
+                # =====================================================
+                with tab_alert:
+                    alert = ultimo[(ultimo["ansia"]>4) | (ultimo["stress"]>4) | (ultimo["stanchezza"]>4)]
+                    st.header("Giocatrici da monitorare")
+                    if alert.empty:
+                        st.success("Nessun alert")
                     else:
-                        return "🟢 OK"
-
-                ultimo["stato"] = ultimo["indice_rischio"].apply(semaforo)
-
-                st.dataframe(ultimo[["nome","indice_rischio","stato"]])
-
-                # =====================================================
-                # 🏆 CLASSIFICA MENTALE
-                # =====================================================
-
-                st.subheader("🏆 Classifica mentale")
-
-                classifica = df.groupby("nome")[parametri].mean()
-                classifica["score"] = (
-                    classifica["motivazione"] +
-                    classifica["concentrazione"] +
-                    classifica["autostima"] +
-                    classifica["supporto"] -
-                    classifica["ansia"] -
-                    classifica["stress"] -
-                    classifica["stanchezza"]
-                )
-
-                classifica = classifica.sort_values("score", ascending=False)
-
-                st.dataframe(classifica)
-
-                fig = px.bar(classifica, y=classifica.index, x="score", orientation="h",
-                            title="Classifica mentale squadra")
-                st.plotly_chart(fig, use_container_width=True)
-
-                # =====================================================
-                # 📈 ANDAMENTO INTERATTIVO
-                # =====================================================
-
-                st.subheader("📈 Andamento nel tempo")
-
-                parametro_sel = st.selectbox("Scegli parametro", parametri, key="grafico_param")
-
-                fig = px.line(df, x="data", y=parametro_sel, color="nome",
-                            markers=True)
-                st.plotly_chart(fig, use_container_width=True)
-
-                # =====================================================
-                # 🧍 SCHEDA SINGOLA ATLETA
-                # =====================================================
-
-                st.subheader("🧍 Scheda atleta")
-
-                atleta = st.selectbox("Seleziona atleta", df["nome"].unique(), key="atleta")
-
-                df_atleta = df[df["nome"]==atleta]
-
-                medie = df_atleta[parametri].mean()
-
-                fig = go.Figure()
-                fig.add_trace(go.Scatterpolar(
-                    r=medie.values,
-                    theta=parametri,
-                    fill='toself'
-                ))
-                fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0,5])),
-                                showlegend=False)
-                st.plotly_chart(fig)
-
-                # =====================================================
-                # 🚨 ALERT AUTOMATICI
-                # =====================================================
-
-                st.subheader("🚨 Alert automatici")
-
-                alert = ultimo[
-                    (ultimo["ansia"]>4) |
-                    (ultimo["stress"]>4) |
-                    (ultimo["stanchezza"]>4)
-                ]
-
-                if alert.empty:
-                    st.success("Nessun alert")
-                else:
-                    st.error("Giocatrici da monitorare")
-                    st.dataframe(alert[["nome","ansia","stress","stanchezza"]])
+                        st.error("Attenzione")
+                        st.dataframe(alert[["nome","ansia","stress","stanchezza"]])
 
         except:
             st.warning("Nessun dato disponibile")
@@ -779,6 +904,7 @@ def main():
         if st.button("Ripulisci dati", key="pulisci"):
             pulire_file_json()
             st.success("Dati eliminati")
+
 
 # Aggiungi la chiamata alla funzione principale
 if __name__ == "__main__":
