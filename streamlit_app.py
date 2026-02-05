@@ -187,15 +187,25 @@ def navigazione():
     # Navigazione basata sul ruolo dell'utente
     if st.session_state['ruolo'] == 'Giocatrice':
         st.sidebar.title(f"👋 Benvenuta {st.session_state['nome']}!")
-        pagina = st.sidebar.radio("Scegli sezione", 
-                                  ["🏠 Home", 
-                                   "⚡ Check-in pre allenamento",
-                                   "🏁 Check-out post allenamento",
-                                   "📈 Il mio andamento",
-                                   "🧠 Questionario mentale", 
-                                   "📓 Diario personale",
-                                   "📝 Diario delle emozioni", 
-                                   "🧘‍♀️ Esercizi Mentali & Risorse"])
+        
+        # Menu principale per le giocatrici
+        menu_principale = st.sidebar.radio("Scegli sezione", 
+                                           ["🏠 Home", 
+                                            "⚡ Allenamento",
+                                            "🧠 Questionario mentale", 
+                                            "📓 Diario personale",
+                                            "📝 Diario delle emozioni", 
+                                            "🧘‍♀️ Esercizi Mentali & Risorse"])
+        
+        # Sottosezione per Allenamento
+        if menu_principale == "⚡ Allenamento":
+            pagina = st.sidebar.selectbox("Seleziona attività di allenamento", 
+                                          ["Check-in pre allenamento", 
+                                           "Check-out post allenamento",
+                                           "Il mio andamento"])
+        else:
+            pagina = menu_principale
+
     elif st.session_state['ruolo'] == 'Allenatore':
         st.sidebar.title(f"👋 Benvenuto {st.session_state['nome']} - Allenatore!")
         pagina = st.sidebar.radio("Scegli sezione", 
