@@ -1,0 +1,10 @@
+{
+  "Giuli": {
+    "ruolo": "Allenatore",
+    "password": "$2b$12$tX9M.UOtLNRTHjUq9wSZte9OgOT19B6pm7sT0RT4KzcEWJ2aC0ofe"
+  },
+  "Giulia": {
+    "ruolo": "Giocatrice",
+    "password": "$2b$12$kMuTyqAlVGFqjOpjk3Kiru4nKanxUtv/7AVx/IjXiLEVkQaH0Fyaa"
+  }
+}

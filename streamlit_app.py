@@ -5,6 +5,8 @@ import random
 import json
 import time
 import matplotlib.pyplot as plt
+import plotly.express as px
+import plotly.graph_objects as go
 import seaborn as sns
 import os
 import bcrypt
@@ -141,7 +143,7 @@ def login():
     with tab2:
         nome_r = st.text_input("Nuovo nome")
         ruolo_r = st.selectbox("Ruolo", ["Giocatrice", "Allenatore"])
-        pw1 = st.text_input("Password", type="password")
+        pw1 = st.text_input("Password", type="password", key="login_pw1")
         pw2 = st.text_input("Conferma password", type="password")
 
         if st.button("Registrati"):
@@ -629,73 +631,155 @@ def main():
             audio_mindfulness()
 
     elif pagina == "📊 Dashboard Allenatore":
-        st.title("📊 Dashboard Allenatore - Stato Mentale delle Giocatrici")
+        st.title("📊 Dashboard Allenatore")
+
+
 
         try:
             with open("questionario_mentale.json", "r") as f:
                 dati = json.load(f)
-            df_stato_mentale = pd.DataFrame(dati)
 
-            # Mostra la tabella dei dati
-            st.subheader("📋 Risposte raccolte")
-            st.dataframe(df_stato_mentale)
-           
-            # Grafici delle medie per ogni parametro mentale
-            st.subheader("📊 Medie per parametro psicologico")
-            for colonna in ["motivazione", "ansia", "concentrazione", "autostima", "stanchezza", "stress", "supporto", "soddisfazione"]:
-                media = df_stato_mentale.groupby("nome")[colonna].mean().sort_values(ascending=False)
-                st.write(f"**{colonna.capitalize()} media**")
-                st.bar_chart(media)
+            df = pd.DataFrame(dati)
 
-            # 2. Distribuzione delle risposte per ogni parametro psicologico (grafico a violino)
-            st.subheader("📊 Distribuzione delle risposte per parametro psicologico")
-            for colonna in ["motivazione", "ansia", "concentrazione", "autostima", "stanchezza", "stress", "supporto", "soddisfazione"]:
-                st.write(f"**Distribuzione per {colonna.capitalize()}**")
-                fig = plt.figure(figsize=(8, 6))
-                sns.violinplot(x="nome", y=colonna, data=df_stato_mentale)
-                st.pyplot(fig)
+            if df.empty:
+                st.warning("Nessun dato disponibile")
+            else:
 
-            # 3. Andamento nel tempo delle risposte (grafico a linee)
-            st.subheader("📈 Andamento nel tempo dello stato mentale")
-            df_stato_mentale["data"] = pd.to_datetime(df_stato_mentale["data"])
-            df_stato_mentale.set_index("data", inplace=True)
+                parametri = ["motivazione","ansia","concentrazione","autostima",
+                            "stanchezza","stress","supporto","soddisfazione"]
 
-            for colonna in ["motivazione", "ansia", "concentrazione", "autostima", "stanchezza", "stress", "supporto", "soddisfazione"]:
-                st.write(f"**Andamento di {colonna.capitalize()} nel tempo**")
-                st.line_chart(df_stato_mentale[colonna].resample('D').mean())
+                # assicura numeri
+                for col in parametri:
+                    df[col] = pd.to_numeric(df[col], errors="coerce")
 
-            # 5. Analisi delle correlazioni tra i parametri psicologici
-            st.subheader("📊 Correlazione tra i parametri psicologici")
-            correlazioni = df_stato_mentale[["motivazione", "ansia", "concentrazione", "autostima", "stanchezza", "stress", "supporto", "soddisfazione"]].corr()
-            st.write(correlazioni)
+                df["data"] = pd.to_datetime(df["data"])
 
-            fig = plt.figure(figsize=(8, 6))
-            sns.heatmap(correlazioni, annot=True, cmap="coolwarm", fmt=".2f")
-            st.pyplot(fig)
+                # =====================================================
+                # 🧠 INDICE RISCHIO MENTALE
+                # =====================================================
 
-            # 7. Classificazione delle Giocatrici in Base allo Stato Mentale
-            st.subheader("📊 Classificazione delle Giocatrici per Stato Mentale")
-            condizioni = {
-                "alta_motivazione": df_stato_mentale[df_stato_mentale["motivazione"] > 4],
-                "bassa_ansia": df_stato_mentale[df_stato_mentale["ansia"] < 3],
-                "alta_concentrazione": df_stato_mentale[df_stato_mentale["concentrazione"] > 4]
-            }
+                df["indice_rischio"] = (
+                    df["ansia"]*0.3 +
+                    df["stress"]*0.3 +
+                    df["stanchezza"]*0.2 -
+                    df["motivazione"]*0.1 -
+                    df["autostima"]*0.1
+                )
 
-            
-            
-            # Verifica le condizioni per la classificazione delle giocatrici
-            for condizione, dati in condizioni.items():
-                # Aggiungi la conversione in stringa della variabile condizione
-                st.write(f"**Giocatrici con {str(condizione.replace('_', ' ').capitalize())}:**")
-                st.write(dati)
-        except FileNotFoundError:
-            st.warning("⚠️ Nessun dato disponibile. Le giocatrici devono prima compilare il questionario.")
-        except Exception as e:
-            st.error(f"Errore durante la lettura dei dati: {e}, non ci sono ancora dati disponibili.")
-    # Aggiungi il pulsante per ripulire il file JSON
-        if st.button("Ripulisci Dati"):
-            pulire_file_json()  # Ripulisce il file quando il pulsante viene premuto
-            
+                st.subheader("🧠 Indice rischio mentale squadra")
+
+                rischio_squadra = df["indice_rischio"].mean()
+
+                col1,col2,col3 = st.columns(3)
+
+                col1.metric("Rischio medio squadra", round(rischio_squadra,2))
+                col2.metric("Motivazione media", round(df["motivazione"].mean(),2))
+                col3.metric("Stress medio", round(df["stress"].mean(),2))
+
+                # =====================================================
+                # 🚦 SEMAFORO GIOCATRICI
+                # =====================================================
+
+                st.subheader("🚦 Stato giocatrici")
+
+                ultimo = df.sort_values("data").groupby("nome").last().reset_index()
+
+                def semaforo(v):
+                    if v > 3.5:
+                        return "🔴 Alto"
+                    elif v > 2.5:
+                        return "🟠 Medio"
+                    else:
+                        return "🟢 OK"
+
+                ultimo["stato"] = ultimo["indice_rischio"].apply(semaforo)
+
+                st.dataframe(ultimo[["nome","indice_rischio","stato"]])
+
+                # =====================================================
+                # 🏆 CLASSIFICA MENTALE
+                # =====================================================
+
+                st.subheader("🏆 Classifica mentale")
+
+                classifica = df.groupby("nome")[parametri].mean()
+                classifica["score"] = (
+                    classifica["motivazione"] +
+                    classifica["concentrazione"] +
+                    classifica["autostima"] +
+                    classifica["supporto"] -
+                    classifica["ansia"] -
+                    classifica["stress"] -
+                    classifica["stanchezza"]
+                )
+
+                classifica = classifica.sort_values("score", ascending=False)
+
+                st.dataframe(classifica)
+
+                fig = px.bar(classifica, y=classifica.index, x="score", orientation="h",
+                            title="Classifica mentale squadra")
+                st.plotly_chart(fig, use_container_width=True)
+
+                # =====================================================
+                # 📈 ANDAMENTO INTERATTIVO
+                # =====================================================
+
+                st.subheader("📈 Andamento nel tempo")
+
+                parametro_sel = st.selectbox("Scegli parametro", parametri, key="grafico_param")
+
+                fig = px.line(df, x="data", y=parametro_sel, color="nome",
+                            markers=True)
+                st.plotly_chart(fig, use_container_width=True)
+
+                # =====================================================
+                # 🧍 SCHEDA SINGOLA ATLETA
+                # =====================================================
+
+                st.subheader("🧍 Scheda atleta")
+
+                atleta = st.selectbox("Seleziona atleta", df["nome"].unique(), key="atleta")
+
+                df_atleta = df[df["nome"]==atleta]
+
+                medie = df_atleta[parametri].mean()
+
+                fig = go.Figure()
+                fig.add_trace(go.Scatterpolar(
+                    r=medie.values,
+                    theta=parametri,
+                    fill='toself'
+                ))
+                fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0,5])),
+                                showlegend=False)
+                st.plotly_chart(fig)
+
+                # =====================================================
+                # 🚨 ALERT AUTOMATICI
+                # =====================================================
+
+                st.subheader("🚨 Alert automatici")
+
+                alert = ultimo[
+                    (ultimo["ansia"]>4) |
+                    (ultimo["stress"]>4) |
+                    (ultimo["stanchezza"]>4)
+                ]
+
+                if alert.empty:
+                    st.success("Nessun alert")
+                else:
+                    st.error("Giocatrici da monitorare")
+                    st.dataframe(alert[["nome","ansia","stress","stanchezza"]])
+
+        except:
+            st.warning("Nessun dato disponibile")
+
+        if st.button("Ripulisci dati", key="pulisci"):
+            pulire_file_json()
+            st.success("Dati eliminati")
+
 # Aggiungi la chiamata alla funzione principale
 if __name__ == "__main__":
     main()
