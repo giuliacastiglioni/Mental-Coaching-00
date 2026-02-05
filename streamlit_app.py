@@ -1,5 +1,5 @@
 import streamlit as st
-from datetime import datetime
+from datetime import datetime, date
 import pandas as pd
 import random
 import json
@@ -132,7 +132,7 @@ def login():
     # ---- IMMAGINE LOGIN ----
     st.image(
         "https://m.media-amazon.com/images/I/61J70VRI6mL._AC_SX679_.jpg", 
-        width="stretch"
+        width=1000
     )
     # ---------------- LOGIN ----------------
     with tab1:
@@ -253,13 +253,13 @@ def home():
     if 'ruolo' in st.session_state:
         if st.session_state['ruolo'] == 'Giocatrice':
             st.markdown(f"Benvenuta {st.session_state.get('nome','')}! Pronta a migliorare il tuo benessere mentale nel calcio?")
-            st.image("https://i.pinimg.com/originals/ea/c0/96/eac0962e0bd8f573859a6a515ff9b0eb.png", width="stretch")
+            st.image("https://i.pinimg.com/originals/ea/c0/96/eac0962e0bd8f573859a6a515ff9b0eb.png", width=1000)
         elif st.session_state['ruolo'] == 'Allenatore':
             st.markdown(f"Benvenuta {st.session_state.get('nome','')}! Qui puoi monitorare la tua squadra e supportare le giocatrici.")
-            st.image("https://www.magicalquote.com/wp-content/uploads/2021/06/For-me-success-is-not-about-the-wins-and-losses.-Its-about-helping-these-young-fellas-be-the-best-versions-of-themselves-on-and-off-the-field.jpg", width="stretch")
+            st.image("https://www.magicalquote.com/wp-content/uploads/2021/06/For-me-success-is-not-about-the-wins-and-losses.-Its-about-helping-these-young-fellas-be-the-best-versions-of-themselves-on-and-off-the-field.jpg", width=1000)
     else:
         st.markdown("Benvenuto nella tua area personale per migliorare il tuo benessere mentale nel calcio!")
-        st.image("https://th.bing.com/th/id/OIP.Sz-ErltHiavXNHUAne6W_QHaE8?pid=ImgDet&w=184&h=122&c=7&dpr=1,3", width="stretch")
+        st.image("https://th.bing.com/th/id/OIP.Sz-ErltHiavXNHUAne6W_QHaE8?pid=ImgDet&w=184&h=122&c=7&dpr=1,3", width=1000)
 
     st.markdown("Usa il menu a sinistra per iniziare ✨")
 
@@ -361,43 +361,72 @@ def andamento_atleta():
 # Definisci tutte le funzioni prima del blocco principale
 def esercizio_respirazione():
     st.subheader("Esercizi di Respirazione")
-    scelta = st.radio("Scegli il tipo di respirazione:", 
-                      ["Quadrata (4-4-4-4)", "4-7-8", "Diaframmatica", "Narici Alternate"])
-    
-    if scelta == "Quadrata (4-4-4-4)":
-        st.markdown("""
-        **Istruzioni per la Respirazione Quadrata:**
-        1. Inspira per 4 secondi.
-        2. Trattieni il respiro per 4 secondi.
-        3. Espira per 4 secondi.
-        4. Trattieni il respiro per 4 secondi.
-        Ripeti il ciclo per 3-5 minuti.
-        """)
-    elif scelta == "4-7-8":
-        st.markdown("""
-        **Istruzioni per la Respirazione 4-7-8:**
-        1. Inspira lentamente per 4 secondi.
-        2. Trattieni il respiro per 7 secondi.
-        3. Espira lentamente per 8 secondi.
-        Ripeti per 4-8 cicli.
-        """)
-    elif scelta == "Diaframmatica":
-        st.markdown("""
-        **Istruzioni per la Respirazione Diaframmatica:**
-        1. Metti una mano sul petto e l'altra sull'addome.
-        2. Inspira profondamente dal naso, espandendo soprattutto l'addome.
-        3. Espira lentamente per 6-8 secondi, concentrandoti sulla contrazione dell'addome.
-        Ripeti per alcuni minuti.
-        """)
-    elif scelta == "Narici Alternate":
-        st.markdown("""
-        **Istruzioni per la Respirazione a Narici Alternate:**
-        1. Chiudi la narice destra e inspira lentamente attraverso quella sinistra per 4 secondi.
-        2. Chiudi la narice sinistra, apri la destra ed espira lentamente per 4 secondi.
-        3. Inspira attraverso la narice destra per 4 secondi, poi chiudi la destra e apri la sinistra per espirare per 4 secondi.
-        Ripeti il ciclo per 3-5 minuti.
-        """)
-    st.button("Inizia esercizio")
+
+    # stato radio
+    if "tipo_respiro" not in st.session_state:
+        st.session_state.tipo_respiro = "Quadrata (4-4-4-4)"
+
+    scelta = st.radio(
+        "Scegli il tipo di respirazione:",
+        ["Quadrata (4-4-4-4)", "4-7-8", "Diaframmatica", "Narici Alternate"],
+        key="radio_respiro"
+    )
+
+    st.session_state.tipo_respiro = scelta
+
+    st.divider()
+
+    if scelta == "Quadrata (4-4-4-4)": 
+        st.markdown(""" 
+                    **Istruzioni per la Respirazione Quadrata:** 
+                    
+                    1. Inspira per 4 secondi. 
+                    2. Trattieni il respiro per 4 secondi. 
+                    3. Espira per 4 secondi. 
+                    4. Trattieni il respiro per 4 secondi.                                                    
+                    
+                    Ripeti il ciclo per 3-5 minuti. 
+                    """) 
+    elif scelta == "4-7-8": 
+        st.markdown(""" 
+                    **Istruzioni per la Respirazione 4-7-8:** 
+                    
+                    1. Inspira lentamente per 4 secondi. 
+                    2. Trattieni il respiro per 7 secondi. 
+                    3. Espira lentamente per 8 secondi.
+                    
+                    Ripeti per 4-8 cicli. 
+                    """) 
+    elif scelta == "Diaframmatica": 
+        st.markdown(""" 
+                    **Istruzioni per la Respirazione Diaframmatica:** 
+                    
+                    1. Metti una mano sul petto e l'altra sull'addome. 
+                    2. Inspira profondamente dal naso, espandendo soprattutto l'addome. 
+                    3. Espira lentamente per 6-8 secondi, concentrandoti sulla contrazione dell'addome.                                                
+                    
+                    Ripeti per alcuni minuti.
+                    """) 
+    elif scelta == "Narici Alternate": 
+        st.markdown(""" 
+                    **Istruzioni per la Respirazione a Narici Alternate:** 
+                    
+                    1. Chiudi la narice destra e inspira lentamente attraverso quella sinistra per 4 secondi. 
+                    2. Chiudi la narice sinistra, apri la destra ed espira lentamente per 4 secondi. 
+                    3. Inspira attraverso la narice destra per 4 secondi, poi chiudi la destra e apri la sinistra per espirare per 4 secondi.                                                   
+                    
+                    Ripeti il ciclo per 3-5 minuti. 
+                    """)
+
+    st.divider()
+
+    # stato esercizio attivo
+    if "start_respiro" not in st.session_state:
+        st.session_state.start_respiro = False
+
+    if st.session_state.start_respiro:
+        st.success("Esercizio avviato")
+
 
 def visualizzazione_pre_partita():
     st.subheader("Visualizzazione Pre-Partita")
@@ -565,22 +594,12 @@ def frasi_motivazionali():
         "Il calcio è una questione di orgoglio e spirito di squadra, e il duro lavoro batte il talento quando il talento non lavora duro. - Andrea Pirlo",
         "Non puoi battere il duro lavoro. - Zinedine Zidane",
         "La vittoria è solo un altro passo. La cosa importante è continuare a migliorarsi. - Michael Jordan",
-        "Il più grande errore che puoi fare nella vita è avere paura di fare errori. - Elbert Hubbard",
-        "Non misurare mai il tuo progresso con quello degli altri. Abbi fede nel tuo percorso. - Unknown",
         "La forza non arriva dalle capacità fisiche. Arriva dalla volontà indomabile. - Mahatma Gandhi",
-        "Non importa quanto lento tu vada, l'importante è non fermarti. - Confucio",
-        "Ogni grande sogno inizia con un sognatore. - Harriet Tubman",
-        "La disciplina è il ponte tra gli obiettivi e i risultati. - Jim Rohn",
         "Il vero fallimento non è cadere, ma rimanere a terra. - Mary Pickford",
-        "Se vuoi qualcosa che non hai mai avuto, devi fare qualcosa che non hai mai fatto. - Thomas Jefferson",
-        "Le persone che riescono sono quelle che non mollano mai. - Winston Churchill",
-        "Non limitarti. Il mondo è tuo. - Unknown",
         "Solo quelli che osano fallire grandemente possono mai ottenere grandi successi. - Robert F. Kennedy",
         "Sii il cambiamento che vuoi vedere nel mondo. - Mahatma Gandhi",
         "La passione è l'energia. Sentirete il potere che deriva dal concentrarvi su ciò che vi entusiasma. - Oprah Winfrey",
         "L'unico modo per fare un ottimo lavoro è amare quello che fai. - Steve Jobs",
-        "Non aspettare il momento perfetto. Crea il momento perfetto. - Unknown",
-        "Se non sei disposto a rischiare, non sarai mai in grado di ottenere ciò che desideri. - Unknown",
         "In sostanza, o sei uno che si assume rischi o non lo sei, e se non corri rischi, non vincerai mai in grande. - Geno Auriemma",
         "Ci saranno giorni buoni e giorni cattivi, ma il mio amore assoluto per il gioco e la forza che viene da Dio mi riporteranno dove devo essere. - Paige Bueckers"
     ]
@@ -631,7 +650,7 @@ def pulire_file_json():
 # -------------------- QUESTIONARIO --------------------
 def questionario_mentale():
     st.title("🧠 Come ti senti oggi?")
-    oggi = datetime.date.today().isoformat()
+    oggi = date.today().isoformat()
 
     # Domande originali
     motivazione = st.slider("Motivazione", 1, 5, 3, step=1)
@@ -698,7 +717,7 @@ def questionario_mentale():
 # -------------------- DIARIO --------------------
 def diario_personale():
     st.title("📓 Diario personale")
-    oggi = datetime.date.today().isoformat()
+    oggi = date.today().isoformat()
 
     # Aggiungi un'area di testo per scrivere il pensiero del giorno
     testo = st.text_area("Scrivi qui il tuo pensiero di oggi")
@@ -790,18 +809,39 @@ def main():
     elif pagina == "🧘‍♀️ Esercizi Mentali & Risorse":
         st.title("🧘‍♀️ Esercizi Mentali & Risorse")
         st.markdown("Seleziona un esercizio mentale da fare:")
+        # stato esercizio selezionato
+        if "esercizio_attivo" not in st.session_state:
+            st.session_state.esercizio_attivo = None
 
-        # Creiamo 4 colonne per i pulsanti
         col1, col2, col3, col4 = st.columns(4)
 
         if col1.button("Respirazione"):
-            esercizio_respirazione()
+            st.session_state.esercizio_attivo = "respirazione"
+
         if col2.button("Visualizzazione pre-partita"):
-            visualizzazione_pre_partita()
+            st.session_state.esercizio_attivo = "visualizzazione"
+
         if col3.button("Frasi motivazionali"):
-            frasi_motivazionali()
+            st.session_state.esercizio_attivo = "frasi"
+
         if col4.button("Audio motivazionali"):
+            st.session_state.esercizio_attivo = "audio"
+
+        st.divider()
+
+        # MOSTRA ESERCIZIO ATTIVO
+        if st.session_state.esercizio_attivo == "respirazione":
+            esercizio_respirazione()
+
+        elif st.session_state.esercizio_attivo == "visualizzazione":
+            visualizzazione_pre_partita()
+
+        elif st.session_state.esercizio_attivo == "frasi":
+            frasi_motivazionali()
+
+        elif st.session_state.esercizio_attivo == "audio":
             audio_mindfulness()
+
 
 
     elif pagina == "📊 Dashboard Allenatore":
