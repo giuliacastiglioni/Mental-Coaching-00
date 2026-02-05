@@ -189,6 +189,9 @@ def navigazione():
         st.sidebar.title(f"👋 Benvenuta {st.session_state['nome']}!")
         pagina = st.sidebar.radio("Scegli sezione", 
                                   ["🏠 Home", 
+                                   "⚡ Check-in pre allenamento",
+                                   "🏁 Check-out post allenamento",
+                                   "📈 Il mio andamento",
                                    "🧠 Questionario mentale", 
                                    "📓 Diario personale",
                                    "📝 Diario delle emozioni", 
