@@ -849,7 +849,7 @@ def main():
 
         try:
             # Carica dati questionario mentale
-            with open("questionario_mentale.json", "r") as f:
+            with open("questionario.json", "r") as f:
                 dati = json.load(f)
             df = pd.DataFrame(dati)
 
