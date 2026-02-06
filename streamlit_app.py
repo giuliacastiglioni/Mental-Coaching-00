@@ -31,7 +31,7 @@ def salva_dati_json(file_path, data):
 # Percorsi dei file JSON
 file_questionario = "questionario.json"
 file_diario = "diario.json"
-file_emozioni= "emozioni.json"
+file_emozioni= "emozione.json"
 file_checkin = "checkin_pre.json"
 file_checkout = "checkout_post.json"
 
@@ -527,11 +527,11 @@ def diario_emozioni():
 
                 try:
                     # Crea il file delle emozioni se non esiste
-                    if not os.path.exists("emozioni.json"):
-                        with open("emozioni.json", "w") as f:
+                    if not os.path.exists("emozione.json"):
+                        with open("emozione.json", "w") as f:
                             json.dump([], f)
 
-                    with open("emozioni.json", "r+") as f:
+                    with open("emozione.json", "r+") as f:
                         data = json.load(f)
                         data.append(emozioni_data)
                         f.seek(0)
@@ -546,8 +546,8 @@ def diario_emozioni():
     else:
         st.write("Non hai selezionato nessuna emozione.")
 # Visualizza le note precedenti
-    if os.path.exists("emozioni.json"):
-        with open("emozioni.json", "r") as f:
+    if os.path.exists("emozione.json"):
+        with open("emozione.json", "r") as f:
             tutte_le_note = json.load(f)
 
         if 'nome' in st.session_state:
@@ -576,7 +576,7 @@ def diario_emozioni():
 def frasi_motivazionali():
     # Frasi motivazionali estratte da calciatori famosi
     frasi = [
-        "Be curious, not judgmental. (Sii curioso, non giudicante.)",
+        "Be curious, not judgmental. (Sii curioso, non giudicante.) - Ted Lasso",
         "I believe in hope. I believe in believe. (Io credo nella speranza. Io credo nel credere.) - Ted Lasso",
         "Taking on a challenge is a lot like riding a horse, isn’t it? If you’re comfortable while you’re doing it, you’re probably doing it wrong. (Affrontare una sfida è un po' come andare a cavallo, no? Se ti senti a tuo agio mentre lo fai, probabilmente lo stai facendo male.) - Ted Lasso",
         "Doing the right thing is never the wrong thing. (Fare la cosa giusta non è mai sbagliato.) - Ted Lasso",
@@ -594,12 +594,6 @@ def frasi_motivazionali():
         "Il calcio è una questione di orgoglio e spirito di squadra, e il duro lavoro batte il talento quando il talento non lavora duro. - Andrea Pirlo",
         "Non puoi battere il duro lavoro. - Zinedine Zidane",
         "La vittoria è solo un altro passo. La cosa importante è continuare a migliorarsi. - Michael Jordan",
-        "La forza non arriva dalle capacità fisiche. Arriva dalla volontà indomabile. - Mahatma Gandhi",
-        "Il vero fallimento non è cadere, ma rimanere a terra. - Mary Pickford",
-        "Solo quelli che osano fallire grandemente possono mai ottenere grandi successi. - Robert F. Kennedy",
-        "Sii il cambiamento che vuoi vedere nel mondo. - Mahatma Gandhi",
-        "La passione è l'energia. Sentirete il potere che deriva dal concentrarvi su ciò che vi entusiasma. - Oprah Winfrey",
-        "L'unico modo per fare un ottimo lavoro è amare quello che fai. - Steve Jobs",
         "In sostanza, o sei uno che si assume rischi o non lo sei, e se non corri rischi, non vincerai mai in grande. - Geno Auriemma",
         "Ci saranno giorni buoni e giorni cattivi, ma il mio amore assoluto per il gioco e la forza che viene da Dio mi riporteranno dove devo essere. - Paige Bueckers"
     ]
@@ -738,11 +732,11 @@ def diario_personale():
 
             try:
                 # Crea il file se non esiste
-                if not os.path.exists("diario_personale.json"):
-                    with open("diario_personale.json", "w") as f:
+                if not os.path.exists("diario.json"):
+                    with open("diario.json", "w") as f:
                         json.dump([], f)
 
-                with open("diario_personale.json", "r+") as f:
+                with open("diario.json", "r+") as f:
                     data = json.load(f)
                     data.append(nuova_entry)
                     f.seek(0)
@@ -757,8 +751,8 @@ def diario_personale():
     st.subheader("📖 I tuoi appunti passati")
 
     # Visualizza le note precedenti
-    if os.path.exists("diario_personale.json"):
-        with open("diario_personale.json", "r") as f:
+    if os.path.exists("diario.json"):
+        with open("diario.json", "r") as f:
             tutte_le_note = json.load(f)
 
         diario_nome = [r for r in tutte_le_note if r["nome"] == nome]
@@ -866,14 +860,14 @@ def main():
 
                 # Crea le tab
                 tab_mentale, tab_allenamento, tab_carico, tab_alert = st.tabs(
-                    ["🧠 Mentale", "⚡ Allenamento", "📊 Carico", "🚨 Alert"]
+                    ["Mentale", "Allenamento", "Carico", "Alert"]
                 )
 
                 # =====================================================
                 # 🧠 TAB MENTALE
                 # =====================================================
                 with tab_mentale:
-                    st.subheader("🧠 Indice rischio mentale squadra")
+                    st.subheader("Indice rischio mentale squadra")
                     df["indice_rischio"] = (
                         df["ansia"]*0.3 +
                         df["stress"]*0.3 +
@@ -898,11 +892,11 @@ def main():
                         else:
                             return "🟢 OK"
                     ultimo["stato"] = ultimo["indice_rischio"].apply(semaforo)
-                    st.subheader("🚦 Stato giocatrici")
+                    st.subheader("Stato giocatrici")
                     st.dataframe(ultimo[["nome","indice_rischio","stato"]])
 
                     # Classifica mentale
-                    st.subheader("🏆 Classifica mentale")
+                    st.subheader("Classifica mentale")
                     classifica = df.groupby("nome")[parametri].mean()
                     classifica["score"] = (
                         classifica["motivazione"] +
@@ -920,13 +914,13 @@ def main():
                     st.plotly_chart(fig, use_container_width=True)
 
                     # Andamento parametro
-                    st.subheader("📈 Andamento nel tempo")
+                    st.subheader("Andamento nel tempo")
                     parametro_sel = st.selectbox("Scegli parametro", parametri, key="grafico_param")
                     fig = px.line(df, x="data", y=parametro_sel, color="nome", markers=True)
                     st.plotly_chart(fig, use_container_width=True)
 
                     # Radar atleta
-                    st.subheader("🧍 Scheda atleta")
+                    st.subheader("Scheda atleta")
                     atleta = st.selectbox("Seleziona atleta", df["nome"].unique(), key="radar")
                     df_atleta = df[df["nome"]==atleta]
                     medie = df_atleta[parametri].mean()
@@ -940,7 +934,7 @@ def main():
                 # ⚡ TAB ALLENAMENTO
                 # =====================================================
                 with tab_allenamento:
-                    st.header("⚡ Check-in e post allenamento")
+                    st.header("Check pre e post allenamento")
                     
                     # Check-in pre
                     try:
