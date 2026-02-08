@@ -8,38 +8,68 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
 import seaborn as sns
-import os
+#import os
 import bcrypt
 import numpy as np
-from auth import register_user, check_login
+#from auth import register_user, check_login
+import gspread
+from google.oauth2.service_account import Credentials
+import json
+
+# -------------------- Connessione per login/registrazione --------------------
+#@st.cache_data
+def connessione_google_auth():
+    """Connessione al foglio utenti per login/registrazione"""
+    with open(".streamlit/secrets/google.json") as f:
+        creds_json = json.load(f)
+    creds = Credentials.from_service_account_info(
+        creds_json,
+        scopes=[
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive"
+        ]
+    )
+    client = gspread.authorize(creds)
+    sheet_id = "1oPzYrSrzhw-XTxSPz2v7ECA9kAuALisr4vIr3UslWKE"
+    spreadsheet = client.open_by_key(sheet_id)
+    return spreadsheet
+
+def salva_su_sheet(nome_foglio, riga):
+    """
+    Salva una riga su un foglio specifico.
+    """
+    sheet = connessione_google_auth()
+    ws = sheet.worksheet(nome_foglio)
+    ws.append_row(riga)
+
 
 # -------------------- PERSONALIZZAZIONE DELLO SFONDO --------------------
 # -------------------- CARICAMENTO E CREAZIONE DEI FILE JSON --------------------
-def carica_dati_json(file_path):
-    if os.path.exists(file_path):
-        with open(file_path, 'r') as f:
-            return json.load(f)
-    else:
-        return []
+#def carica_dati_json(file_path):
+#    if os.path.exists(file_path):
+#        with open(file_path, 'r') as f:
+#            return json.load(f)
+#    else:
+#        return []
 
 
-def salva_dati_json(file_path, data):
-    """Salva i dati nel file JSON"""
-    with open(file_path, 'w') as f:
-        json.dump(data, f, indent=4)
+#def salva_dati_json(file_path, data):
+#    """Salva i dati nel file JSON"""
+#    with open(file_path, 'w') as f:
+#        json.dump(data, f, indent=4)
 
 # Percorsi dei file JSON
-file_questionario = "questionario.json"
-file_diario = "diario.json"
-file_emozioni= "emozione.json"
-file_checkin = "checkin_pre.json"
-file_checkout = "checkout_post.json"
+#file_questionario = "questionario.json"
+#file_diario = "diario.json"
+#file_emozioni= "emozione.json"
+#file_checkin = "checkin_pre.json"
+#file_checkout = "checkout_post.json"
 
 # Carica i dati esistenti dai file JSON
-dati_questionario = carica_dati_json(file_questionario)
-dati_diario = carica_dati_json(file_diario)
-dati_checkin = carica_dati_json(file_checkin)
-dati_checkout = carica_dati_json(file_checkout)
+#dati_questionario = carica_dati_json(file_questionario)
+#dati_diario = carica_dati_json(file_diario)
+#dati_checkin = carica_dati_json(file_checkin)
+#dati_checkout = carica_dati_json(file_checkout)
 
 # Funzione per aggiungere uno sfondo azzurro chiaro
 def set_bg_color():
@@ -77,69 +107,23 @@ def style_buttons():
 # Applica la personalizzazione dei bottoni
 style_buttons()
 
-# File per salvare i dati (senza cifratura complessa)
-#LOGIN_FILE = 'login_data.json'
-
-# Dizionari separati per giocatrici e allenatori (contenente hash delle password)
-#passwords_giocatrici = {
-#    "Giuli": None,
-#    "Faccio": None,
-#    "Babi": None,
-#    "Cla": None,
-#    "Mame": None,
-#    "Marti Russo": None,
-#    "Marti Casella": None,
-#    "Cata": None,
-#    "Ele": None
-#}
-
-#passwords_allenatori = {
-#    "Marti": None,
-#    "Elena": None,
-#    "Giulia": None
-#}
-
-# Funzione per leggere i login dal file
-#def leggi_login():
-#    try:
-#        with open(LOGIN_FILE, 'r') as file:
-#            data = json.load(file)
-#        return data
-#    except FileNotFoundError:
-#        return {}
-
-# Funzione per scrivere i login nel file
-#def scrivi_login(data):
-#    with open(LOGIN_FILE, 'w') as file:
-#        json.dump(data, file)
-
-# Funzione per registrare la password in modo sicuro con bcrypt
-#def registra_password(nome, ruolo, password):
-#    hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
-#    
-#    if ruolo == "Giocatrice":
-#       passwords_giocatrici[nome] = hashed_password
-#    elif ruolo == "Allenatore":
-#        passwords_allenatori[nome] = hashed_password
-
 # Funzione di login
 def login():
     st.title("🔐 Login - Mental Coach")
-
     st.markdown("Benvenuta! Inserisci le tue credenziali per accedere all'app.")
 
     tab1, tab2 = st.tabs(["Accedi", "Registrati"])
+
     # ---- IMMAGINE LOGIN ----
     st.image(
-        "https://m.media-amazon.com/images/I/61J70VRI6mL._AC_SX679_.jpg", 
-        width=1000
+        "https://m.media-amazon.com/images/I/61J70VRI6mL._AC_SX679_.jpg", width=1000
     )
+
     # ---------------- LOGIN ----------------
     with tab1:
-        nome = st.text_input("Nome")
-        password = st.text_input("Password", type="password")
-
-        if st.button("Accedi"):
+        nome = st.text_input("Nome", key="login_nome")
+        password = st.text_input("Password", type="password", key="login_pw")
+        if st.button("Accedi", key="btn_login"):
             ok, ruolo = check_login(nome, password)
             if ok:
                 st.session_state["nome"] = nome
@@ -151,16 +135,15 @@ def login():
 
     # ---------------- REGISTRAZIONE ----------------
     with tab2:
-        nome_r = st.text_input("Nuovo nome")
-        ruolo_r = st.selectbox("Ruolo", ["Giocatrice", "Allenatore"])
-        pw1 = st.text_input("Password", type="password", key="login_pw1")
-        pw2 = st.text_input("Conferma password", type="password")
-
-        if st.button("Registrati"):
+        nome_r = st.text_input("Nuovo nome", key="reg_nome")
+        ruolo_r = st.selectbox("Ruolo", ["Giocatrice", "Allenatore"], key="reg_ruolo")
+        pw1 = st.text_input("Password", type="password", key="reg_pw1")
+        pw2 = st.text_input("Conferma password", type="password", key="reg_pw2")
+        if st.button("Registrati", key="btn_registra"):
             if pw1 != pw2:
                 st.error("Le password non coincidono")
             elif len(pw1) < 4:
-                st.error("Password troppo corta")
+                st.error("La password deve contenere almeno 4 caratteri")
             else:
                 ok, msg = register_user(nome_r, ruolo_r, pw1)
                 if ok:
@@ -170,17 +153,28 @@ def login():
 
     return False
 
+import bcrypt
+# -------------------- Login e Registrazione --------------------
+def register_user(nome, ruolo, password):
+    sheet = connessione_google_auth()
+    ws = sheet.worksheet("utenti")
+    dati = ws.get_all_records()
+    for r in dati:
+        if r["nome"].strip().lower() == nome.strip().lower():
+            return False, "Utente già esistente"
+    hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
+    ws.append_row([nome.strip(), hashed.decode(), ruolo])
+    return True, "ok"
 
-# Funzione per il reset della password
-#def resetta_password(nome, ruolo):
-    # Aggiungi la possibilità di resettare la password
-#    st.write(f"Stai per resettare la password per {nome}.")
-#    nuova_password = st.text_input("Inserisci una nuova password", type="password")
-#    conferma_password = st.text_input("Conferma la nuova password", type="password")
-#
-#    if nuova_password and nuova_password == conferma_password:
-#        registra_password(nome, ruolo, nuova_password)
-#        st.success(f"La password per {nome} è stata aggiornata con successo!")
+def check_login(nome, password):
+    sheet = connessione_google_auth()
+    ws = sheet.worksheet("utenti")
+    dati = ws.get_all_records()
+    for r in dati:
+        if r["nome"].strip().lower() == nome.strip().lower():
+            if bcrypt.checkpw(password.encode(), r["password"].encode()):
+                return True, r["ruolo"]
+    return False, None
 
 # Funzione di navigazione aggiornata
 def navigazione():
@@ -274,20 +268,15 @@ def checkin_pre():
     focus = st.slider("Concentrazione",1,5,3)
 
     if st.button("Invia check-in"):
-        nuovo = {
-            "nome": nome,
-            "data": datetime.now().isoformat(),
-            "energia": energia,
-            "umore": umore,
-            "stress": stress,
-            "focus": focus
-        }
+        data = datetime.now().isoformat()
 
-        dati = carica_dati_json(file_checkin)
-        dati.append(nuovo)
-        salva_dati_json(file_checkin, dati)
+        salva_su_sheet(
+            "allenamenti pre",
+            [nome, data, energia, umore, stress, focus]
+        )
 
-        st.success("Check-in salvato!")
+        st.success("Check-in salvato")
+
 
         # feedback immediato
         indice = stress - energia
@@ -311,20 +300,14 @@ def checkout_post():
     emozione = st.text_input("Una parola sull'allenamento")
 
     if st.button("Invia check-out"):
-        nuovo = {
-            "nome": nome,
-            "data": datetime.now().isoformat(),
-            "fatica": fatica,
-            "soddisfazione": soddisfazione,
-            "prestazione": prestazione,
-            "emozione": emozione
-        }
+        data = datetime.now().isoformat()
 
-        dati = carica_dati_json(file_checkout)
-        dati.append(nuovo)
-        salva_dati_json(file_checkout, dati)
+        salva_su_sheet(
+            "allenamenti post",
+            [nome, data, fatica, soddisfazione, prestazione, emozione]
+        )
 
-        st.success("Check-out salvato!")
+        st.success("Check-out salvato")
 
         if fatica > 4 and soddisfazione < 3:
             st.warning("Allenamento pesante oggi. Recupera bene 💧")
@@ -336,18 +319,15 @@ def andamento_atleta():
 
     nome = st.session_state.get("nome")
 
-    if not os.path.exists("checkin_pre.json"):
-        st.info("Nessun dato")
-        return
-
-    with open("checkin_pre.json") as f:
-        dati = json.load(f)
+    sheet = connessione_google_auth()
+    ws = sheet.worksheet("allenamenti pre")
+    dati = ws.get_all_records()
 
     df = pd.DataFrame(dati)
-    df = df[df["nome"]==nome]
+    df = df[df["nome"] == nome]
 
     if df.empty:
-        st.info("Ancora nessun dato")
+        st.info("Nessun dato")
         return
 
     df["data"] = pd.to_datetime(df["data"])
@@ -487,91 +467,47 @@ def visualizza_emozioni(emozioni_selezionate):
     plt.xticks(rotation=45)
     st.pyplot(fig)
     
-# Funzione per l'area del diario emozioni
 def diario_emozioni():
     st.title("Diario delle Emozioni")
 
-    st.write("Oggi, come ti senti? Seleziona le emozioni che ti rappresentano oggi.")
+    nome = st.session_state.get("nome")
+    oggi = date.today().isoformat()
 
-    # Seleziona più emozioni
-    emozioni_selezionate = st.multiselect("Seleziona le emozioni che stai provando:", list(emozioni.keys()))
+    # ------------------- Sezione inserimento -------------------
+    emozioni_selezionate = st.multiselect(
+        "Che emozioni provi oggi?",
+        list(emozioni.keys())
+    )
 
-    # Visualizza la frase di supporto per ciascuna emozione selezionata
-    if emozioni_selezionate:
-        st.write("**Frasi di supporto per le emozioni selezionate:**")
-        for emozione in emozioni_selezionate:
-            st.write(f"**{emozione}:**")
-            st.write(f"'{emozioni[emozione]}'")
+    riflessione = st.text_area("Scrivi una riflessione")
 
-        # Visualizza il grafico delle emozioni selezionate
-        visualizza_emozioni(emozioni_selezionate)
+    if st.button("Salva Emozioni", key="btn_salva_emozioni"):
+        salva_su_sheet(
+            "emozioni",
+            [nome, oggi, ", ".join(emozioni_selezionate), riflessione]
+        )
+        st.success("Salvato su cloud 💾")
 
-        # Aggiungi un'area di riflessione per ciascuna emozione
-        riflessioni = {}
-        for emozione in emozioni_selezionate:
-            riflessioni[emozione] = st.text_area(f"Come ti senti riguardo a '{emozione}'?", "")
+    # ------------------- Sezione visualizzazione -------------------
+    st.markdown("---")
+    st.subheader("I tuoi appunti precedenti")
 
-        # Salva nel file specifico per le emozioni
-        if st.button('Salva Emozioni'):
-            if 'nome' in st.session_state:
-                nome = st.session_state['nome']
-                oggi = date.today().isoformat()
+    # Recupero dati da Google Sheet
+    sheet = connessione_google_auth()
+    ws = sheet.worksheet("emozioni")
+    dati = ws.get_all_records()
 
-                # Crea un oggetto per le emozioni selezionate e le riflessioni
-                emozioni_data = {
-                    "nome": nome,
-                    "data": oggi,
-                    "emozioni_selezionate": emozioni_selezionate,
-                    "riflessioni": riflessioni
-                }
+    # Filtra solo le emozioni dell'utente loggato
+    dati_utente = [r for r in dati if r["nome"] == nome]
 
-                try:
-                    # Crea il file delle emozioni se non esiste
-                    if not os.path.exists("emozione.json"):
-                        with open("emozione.json", "w") as f:
-                            json.dump([], f)
-
-                    with open("emozione.json", "r+") as f:
-                        data = json.load(f)
-                        data.append(emozioni_data)
-                        f.seek(0)
-                        json.dump(data, f, ensure_ascii=False, indent=2)
-
-                    st.success("✅ Le tue emozioni e riflessioni sono state salvate correttamente!")
-
-                except Exception as e:
-                    st.error(f"❌ Errore durante il salvataggio: {e}")
-            else:
-                st.error("❌ Devi essere loggato per salvare nel diario.")
+    if dati_utente:
+        df = pd.DataFrame(dati_utente)
+       # Mostra in ordine cronologico inverso
+        df = df.sort_values(by="data", ascending=False)
+        st.dataframe(df[["data", "emozioni_selezionate", "riflessioni"]])
     else:
-        st.write("Non hai selezionato nessuna emozione.")
-# Visualizza le note precedenti
-    if os.path.exists("emozione.json"):
-        with open("emozione.json", "r") as f:
-            tutte_le_note = json.load(f)
+        st.info("Ancora nessun appunto salvato 😊")
 
-        if 'nome' in st.session_state:
-            nome = st.session_state['nome']
-
-            # Filtra le note per il nome dell'utente
-            emozioni_data = [r for r in tutte_le_note if r["nome"] == nome]
-
-            if emozioni_data:
-                for riga in sorted(emozioni_data, key=lambda x: x["data"], reverse=True):
-                    st.markdown(f"**{riga['data']}**")
-
-                    # Visualizza le emozioni e le riflessioni per ciascuna
-                    for emozione in riga['emozioni_selezionate']:
-                        riflessione = riga['riflessioni'].get(emozione, "Nessuna riflessione salvata.")
-                        st.markdown(f"**{emozione}:** {riflessione}")
-                    
-                    st.markdown("---")
-            else:
-                st.info("📝 Nessun appunto trovato.")
-        else:
-            st.info("📝 Devi essere loggato per visualizzare gli appunti.")
-    else:
-        st.info("📝 Nessun appunto trovato.")
 
 def frasi_motivazionali():
     # Frasi motivazionali estratte da calciatori famosi
@@ -620,27 +556,7 @@ def audio_mindfulness():
 
 
 
-# Funzione per ripulire il file JSON
-def pulire_file_json():
-    try:
-        # Carica i dati dal file JSON
-        with open("questionario_mentale.json", "r") as f:
-            dati = json.load(f)
 
-        # Pulisce tutti i dati nel file JSON
-        dati.clear()
-
-        # Scrive il file vuoto nel file JSON
-        with open("questionario_mentale.json", "w") as f:
-            json.dump(dati, f, indent=4)
-        
-        st.success("File JSON ripulito con successo!")  # Messaggio di successo
-    except FileNotFoundError:
-        st.warning("⚠️ Il file non è stato trovato.")
-    except json.JSONDecodeError:
-        st.warning("⚠️ Errore nella lettura del file JSON.")
-    except Exception as e:
-        st.error(f"❌ Errore: {e}")
 # -------------------- QUESTIONARIO --------------------
 def questionario_mentale():
     st.title("🧠 Come ti senti oggi?")
@@ -672,104 +588,59 @@ def questionario_mentale():
     st.markdown("Quanto sei soddisfatta della tua performance recente?")
     soddisfazione = st.slider("Soddisfazione Personale", 1, 5, 3, step=1)
 
-    # Verifica che il nome sia stato inserito nella homepage
+ # --- Verifica login ---
     if 'nome' not in st.session_state:
         st.error("⚠️ Inserisci prima il tuo nome nella homepage.")
-    else:
-        nome = st.session_state['nome']
-        if st.button("Salva risposte"):
-            risposta = {
-                "nome": nome,
-                "data": oggi,
-                "motivazione": motivazione,
-                "ansia": ansia,
-                "concentrazione": concentrazione,
-                "autostima": autostima,
-                "stanchezza": stanchezza,
-                "stress": stress,
-                "supporto": supporto,
-                "soddisfazione": soddisfazione
-            }
+        return
 
-            try:
-                # Percorso per il salvataggio su file JSON
-                if not os.path.exists("questionario.json"):
-                    with open("questionario.json", "w") as f:
-                        json.dump([], f)
+    nome = st.session_state['nome']
 
-                with open("questionario.json", "r+") as f:
-                    data = json.load(f)
-                    data.append(risposta)
-                    f.seek(0)
-                    json.dump(data, f, indent=4)
+    # --- Salvataggio su Google Sheet ---
+    if st.button("Salva risposte"):
+        risposta = [nome, oggi, motivazione, ansia, concentrazione, autostima,
+                    stanchezza, stress, supporto, soddisfazione]
 
-                st.success("✅ Risposte salvate con successo!")
-
-            except Exception as e:
-                st.error(f"❌ Errore durante il salvataggio: {e}")
+        try:
+            salva_su_sheet("questionari", risposta)
+            st.success("✅ Risposte salvate con successo!")
+        except Exception as e:
+            st.error(f"❌ Errore durante il salvataggio: {e}")
 
 # -------------------- DIARIO --------------------
 def diario_personale():
     st.title("📓 Diario personale")
-    oggi = date.today().isoformat()
 
-    # Aggiungi un'area di testo per scrivere il pensiero del giorno
-    testo = st.text_area("Scrivi qui il tuo pensiero di oggi")
-    
-    if 'nome' in st.session_state:
-        nome = st.session_state['nome']
-    
-    # Controllo se il campo "testo" non è vuoto prima di salvare
-    if st.button("Salva nel diario"):
-        if testo.strip() == "":
-            st.error("❌ Il pensiero di oggi non può essere vuoto.")
-        else:
-            nuova_entry = {
-                "nome": nome,
-                "data": oggi,
-                "testo": testo,
-            }
+    nome = st.session_state.get("nome")
+    testo = st.text_area("Scrivi")
 
-            try:
-                # Crea il file se non esiste
-                if not os.path.exists("diario.json"):
-                    with open("diario.json", "w") as f:
-                        json.dump([], f)
+    # ------------------- Salvataggio -------------------
+    if st.button("Salva", key="btn_salva_diario"):
+        salva_su_sheet(
+            "diario",
+            [nome, datetime.now().isoformat(), testo]
+        )
+        st.success("Salvato 💾")
 
-                with open("diario.json", "r+") as f:
-                    data = json.load(f)
-                    data.append(nuova_entry)
-                    f.seek(0)
-                    json.dump(data, f, ensure_ascii=False, indent=2)
-
-                st.success("✅ Salvato nel diario!")
-
-            except Exception as e:
-                st.error(f"❌ Errore durante il salvataggio: {e}")
-
+    # ------------------- Visualizzazione appunti pregressi -------------------
     st.markdown("---")
-    st.subheader("📖 I tuoi appunti passati")
+    st.subheader("I tuoi appunti precedenti")
 
-    # Visualizza le note precedenti
-    if os.path.exists("diario.json"):
-        with open("diario.json", "r") as f:
-            tutte_le_note = json.load(f)
+    # Recupero dati da Google Sheet
+    sheet = connessione_google_auth()
+    ws = sheet.worksheet("diario")
+    dati = ws.get_all_records()
 
-        diario_nome = [r for r in tutte_le_note if r["nome"] == nome]
+    # Filtra solo gli appunti dell'utente loggato
+    dati_utente = [r for r in dati if r["nome"] == nome]
 
-        if diario_nome:
-            for riga in sorted(diario_nome, key=lambda x: x["data"], reverse=True):
-                # Controlliamo se la chiave 'testo' esiste nella riga
-                if 'testo' in riga:
-                    st.markdown(f"**{riga['data']}**")
-                    st.markdown(f"> {riga['testo']}")
-                    st.markdown("---")
-                else:
-                    st.warning(f"⚠️ Non ci sono appunti per la data {riga['data']}.")
-        else:
-            st.info("📝 Nessun appunto trovato.")
+    if dati_utente:
+        df = pd.DataFrame(dati_utente)
+        # Ordina per data inversa (più recenti prima)
+        df = df.sort_values(by="data", ascending=False)
+        st.dataframe(df[["data", "testo"]])
     else:
-        st.info("📝 Nessun appunto trovato.")
+        st.info("Ancora nessun appunto salvato 😊")
+
 # Funzione principale dell'app
 def main():
     if 'nome' not in st.session_state:
@@ -842,10 +713,15 @@ def main():
         st.title("📊 Dashboard Allenatore")
 
         try:
-            # Carica dati questionario mentale
-            with open("questionario.json", "r") as f:
-                dati = json.load(f)
-            df = pd.DataFrame(dati)
+            sheet = connessione_google_auth() 
+
+            # ------------------ DATI QUESTIONARIO MENTALE ------------------
+            try:
+                ws_questionari = sheet.worksheet("questionari")  # nome foglio
+                dati = ws_questionari.get_all_records()
+                df = pd.DataFrame(dati)
+            except:
+                df = pd.DataFrame()
 
             if df.empty:
                 st.warning("Nessun dato disponibile")
@@ -935,11 +811,11 @@ def main():
                 # =====================================================
                 with tab_allenamento:
                     st.header("Check pre e post allenamento")
-                    
+
                     # Check-in pre
                     try:
-                        with open("checkin_pre.json","r") as f:
-                            df_check = pd.DataFrame(json.load(f))
+                        ws_checkin = sheet.worksheet("allenamenti pre")
+                        df_check = pd.DataFrame(ws_checkin.get_all_records())
                         if not df_check.empty:
                             df_check["data"] = pd.to_datetime(df_check["data"])
                             oggi = df_check[df_check["data"].dt.date == datetime.now().date()]
@@ -958,8 +834,8 @@ def main():
 
                     # Post allenamento
                     try:
-                        with open("checkout_post.json","r") as f:
-                            df_out = pd.DataFrame(json.load(f))
+                        ws_checkout = sheet.worksheet("allenamenti post")
+                        df_out = pd.DataFrame(ws_checkout.get_all_records())
                         if not df_out.empty:
                             df_out["data"] = pd.to_datetime(df_out["data"])
                             oggi_out = df_out[df_out["data"].dt.date == datetime.now().date()]
@@ -1002,10 +878,6 @@ def main():
 
         except:
             st.warning("Nessun dato disponibile")
-
-        if st.button("Ripulisci dati", key="pulisci"):
-            pulire_file_json()
-            st.success("Dati eliminati")
 
 
 # Aggiungi la chiamata alla funzione principale
