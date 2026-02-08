@@ -20,7 +20,7 @@ import json
 #@st.cache_data
 def connessione_google_auth():
     """Connessione al foglio utenti per login/registrazione"""
-    with open(".streamlit/secrets/google.json") as f:
+    with open(".streamlit/google.json") as f:
         creds_json = json.load(f)
     creds = Credentials.from_service_account_info(
         creds_json,
