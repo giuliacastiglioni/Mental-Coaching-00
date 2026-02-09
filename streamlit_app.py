@@ -19,16 +19,13 @@ import json
 # -------------------- Connessione per login/registrazione --------------------
 #@st.cache_data
 def connessione_google_auth():
-    """Connessione al foglio utenti per login/registrazione"""
-    with open("mental-coach-app-486813-ac9893823b8e.json") as f:
-        creds_json = json.load(f)
     creds = Credentials.from_service_account_info(
-        creds_json,
+        st.secrets["google"],
         scopes=[
             "https://www.googleapis.com/auth/spreadsheets",
-            "https://www.googleapis.com/auth/drive"
-        ]
+            "https://www.googleapis.com/auth/drive"]
     )
+
     client = gspread.authorize(creds)
     sheet_id = "1oPzYrSrzhw-XTxSPz2v7ECA9kAuALisr4vIr3UslWKE"
     spreadsheet = client.open_by_key(sheet_id)
