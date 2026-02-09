@@ -451,7 +451,7 @@ def diario_emozioni():
         list(emozioni.keys())
     )
 
-        if emozioni_selezionate:
+    if emozioni_selezionate:
         st.markdown("### 💡 Frasi di supporto per le tue emozioni")
         for e in emozioni_selezionate:
             st.markdown(f"**{e}**: {emozioni[e]}")
