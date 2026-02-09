@@ -31,7 +31,7 @@ def connessione_google_auth():
         ]
     )
     client = gspread.authorize(creds)
-    spreadsheet = client.open_by_key(st.secrets["sheet_id"])
+    spreadsheet = client.open_by_key(st.secrets["google"]["sheet_id"])
     return spreadsheet
 
 
@@ -45,33 +45,6 @@ def salva_su_sheet(nome_foglio, riga):
 
 
 # -------------------- PERSONALIZZAZIONE DELLO SFONDO --------------------
-# -------------------- CARICAMENTO E CREAZIONE DEI FILE JSON --------------------
-#def carica_dati_json(file_path):
-#    if os.path.exists(file_path):
-#        with open(file_path, 'r') as f:
-#            return json.load(f)
-#    else:
-#        return []
-
-
-#def salva_dati_json(file_path, data):
-#    """Salva i dati nel file JSON"""
-#    with open(file_path, 'w') as f:
-#        json.dump(data, f, indent=4)
-
-# Percorsi dei file JSON
-#file_questionario = "questionario.json"
-#file_diario = "diario.json"
-#file_emozioni= "emozione.json"
-#file_checkin = "checkin_pre.json"
-#file_checkout = "checkout_post.json"
-
-# Carica i dati esistenti dai file JSON
-#dati_questionario = carica_dati_json(file_questionario)
-#dati_diario = carica_dati_json(file_diario)
-#dati_checkin = carica_dati_json(file_checkin)
-#dati_checkout = carica_dati_json(file_checkout)
-
 # Funzione per aggiungere uno sfondo azzurro chiaro
 def set_bg_color():
     st.markdown(
