@@ -18,18 +18,22 @@ import json
 
 # -------------------- Connessione per login/registrazione --------------------
 #@st.cache_data
+import streamlit as st
+import gspread
+from google.oauth2.service_account import Credentials
+
 def connessione_google_auth():
     creds = Credentials.from_service_account_info(
         st.secrets["google"],
         scopes=[
             "https://www.googleapis.com/auth/spreadsheets",
-            "https://www.googleapis.com/auth/drive"]
+            "https://www.googleapis.com/auth/drive"
+        ]
     )
-
     client = gspread.authorize(creds)
-    sheet_id = "1oPzYrSrzhw-XTxSPz2v7ECA9kAuALisr4vIr3UslWKE"
-    spreadsheet = client.open_by_key(sheet_id)
+    spreadsheet = client.open_by_key(st.secrets["sheet_id"])
     return spreadsheet
+
 
 def salva_su_sheet(nome_foglio, riga):
     """
