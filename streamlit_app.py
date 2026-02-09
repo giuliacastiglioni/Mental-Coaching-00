@@ -8,10 +8,8 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
 import seaborn as sns
-#import os
 import bcrypt
 import numpy as np
-#from auth import register_user, check_login
 import gspread
 from google.oauth2.service_account import Credentials
 import json
