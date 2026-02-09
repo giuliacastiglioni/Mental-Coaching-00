@@ -453,12 +453,20 @@ def diario_emozioni():
 
     riflessione = st.text_area("Scrivi una riflessione")
 
+    if emozioni_selezionate:
+        st.markdown("### 💡 Frasi di supporto per le tue emozioni")
+        for e in emozioni_selezionate:
+            st.markdown(f"**{e}**: {emozioni[e]}")
+
+        # Mostra il grafico
+        visualizza_emozioni(emozioni_selezionate)
+    
     if st.button("Salva Emozioni", key="btn_salva_emozioni"):
         salva_su_sheet(
             "emozioni",
             [nome, oggi, ", ".join(emozioni_selezionate), riflessione]
         )
-        st.success("Salvato su cloud 💾")
+        st.success("Salvato su cloud")
 
     # ------------------- Sezione visualizzazione -------------------
     st.markdown("---")
