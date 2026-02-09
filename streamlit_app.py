@@ -451,9 +451,7 @@ def diario_emozioni():
         list(emozioni.keys())
     )
 
-    riflessione = st.text_area("Scrivi una riflessione")
-
-    if emozioni_selezionate:
+        if emozioni_selezionate:
         st.markdown("### 💡 Frasi di supporto per le tue emozioni")
         for e in emozioni_selezionate:
             st.markdown(f"**{e}**: {emozioni[e]}")
@@ -461,6 +459,8 @@ def diario_emozioni():
         # Mostra il grafico
         visualizza_emozioni(emozioni_selezionate)
     
+    riflessione = st.text_area("Scrivi un pensiero sulle emozioni selezionate")
+
     if st.button("Salva Emozioni", key="btn_salva_emozioni"):
         salva_su_sheet(
             "emozioni",
